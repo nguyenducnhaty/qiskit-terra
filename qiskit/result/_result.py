@@ -11,7 +11,7 @@
 
 import logging
 import copy
-from collections import OrderedDict
+from collections import OrderedDict, Counter, defaultdict
 
 import numpy
 
@@ -24,16 +24,20 @@ logger = logging.getLogger(__name__)
 class ExperimentResult(object):
     """Container for the results of a single experiment."""
 
-    def __init__(self, qobj_result_experiment):
+    def __init__(self, qobj_experiment_result):
         """
-
         Args:
-            qobj_result_experiment (qobj.ExperimentResult): schema-conformant
+            qobj_experiment_result (qobj.ExperimentResult): schema-conformant
                 experiment result.
         """
         self.compiled_circuit_qasm = ''
-        self.status = _status_or_success(qobj_result_experiment)
-        self.data = qobj_result_experiment.data
+        self.status = _status_or_success(qobj_experiment_result)
+        self.data = qobj_experiment_result.data
+
+    @property
+    def memory(self):
+        """Sequence of memory bits for each shot."""
+        return self.data['memory']
 
     @property
     def counts(self):
@@ -75,8 +79,12 @@ class Result(object):
                     [ExperimentResult(i) for i in qobj_result.results]))
         else:
             self.results = OrderedDict(
-                (qobj_exp_result.header.get('name'), ExperimentResult(qobj_exp_result))
-                for qobj_exp_result in qobj_result.results)
+                (exp_result.header.get('name'), ExperimentResult(exp_result))
+                for exp_result in qobj_result.results)
+
+        # postprocessing to make result data more human readable for the qiskit user
+        for _, experiment_result in self.results.items():
+            _format_result(experiment_result)
 
     def __str__(self):
         """Get the status of the run.
@@ -128,6 +136,65 @@ class Result(object):
     def _is_error(self):
         return self.status in ('ERROR', 'SUCCESS = False')
 
+    def _hex_to_bin(self, hexstring):
+        """Convert hexadecimal readouts (memory) to binary readouts."""
+        return str(bin(int(hexstring, 16)))[2:]
+
+    def _histogram(self, outcomes):
+        """Build histogram from measurement outcomes of each shot."""
+        counts = dict(Counter(outcomes))
+        return counts
+
+    def _separate_bitstring(self, bitstring):
+        """Separate a bitstring according to the registers defined in the result header."""
+        def _register_sizes(labels):
+            """Find the size of each quantum/classical register based on the qubit/clbit
+            labels in the header."""
+            register_sizes = defaultdict(int)
+            for label in labels:
+                if label:
+                    register_sizes[label[0]] += 1
+
+        if 'clbit_labels' not in self.header:
+            return bitstring
+
+        classical_register_sizes = _register_sizes(self.header['clbit_labels'])
+
+        # sort the classical bits in order of registers (q1[1], q1[0], q0[2], q0[1], q0[0])
+        # TODO: bug 1 when None exists in the qubit_labels
+        # TODO: but 2 go by place of QuantumRegister in the circuit, not register's name
+        key = lambda index: (qubit_labels[index][0], qubit_labels[index][1])
+        ''.join([bitstring[i] for i in sorted(range(len(X)), key=key)])
+
+        # insert spaces
+        substrings = []
+        running_index = 0
+        for _, value OrderedDict(sorted(classical_register_sizes.items())):
+            substrings = bitstring[running_index : bistring[value] + 1]
+            running_index += bistring[value] + 1
+        ' '.join(substrings)
+
+    def _format_result(self, exp_result):
+        """Format result coming from backend to present to the qiskit user.
+
+        Histograms are created from "memory" data (if the backend has not already
+        created them), the hexadecimals are expanded to bitstrings, spaces are inserted
+        at register divisions.
+
+        Args:
+            exp_result (ExperimentResult): result of a single experiment
+
+        Returns:
+            ExperimentResult: formatted result for that experiment
+        """
+        if exp_result.data.get('memory') and not exp_result.data.get('counts'):
+            exp_result.data['counts'] = self._histogram(exp_result.data['memory'])
+
+        exp_result.data['memory'] = [_separate_bitstring(_hex_to_bin(element))
+                                     for element in exp_result.data.get('memory', [])]
+        exp_result.data['counts'] = {_separate_bitstring(_hex_to_bin(key)) : val
+                                     for key, val in exp_result.data.get('counts', {}).items()}
+
     def get_status(self):
         """Return whole result status."""
         return self.status
@@ -178,24 +245,18 @@ class Result(object):
     def get_data(self, circuit=None):
         """Get the data of circuit name.
 
-        The data format will depend on the backend. For a real device it
-        will be for the form::
+        The data format will depend on the backend. For a real device
+        and qasm simulator, it will be of the form::
 
+            "memory": ['00000', '00001', '00011', ..., '10001']
             "counts": {'00000': XXXX, '00001': XXXX},
-            "time"  : xx.xxxxxxxx
 
-        for the qasm simulators of 1 shot::
-
-            'statevector': array([ XXX,  ..., XXX]),
-            'classical_state': 0
-
-        for the qasm simulators of n shots::
-
-            'counts': {'0000': XXXX, '1001': XXXX}
+        for the statevector simulators::
+            "statevector": [XX + XXj, ..., XX + XXj]
 
         for the unitary simulators::
 
-            'unitary': np.array([[ XX + XXj
+            "unitary": np.array([[ XX + XXj
                                    ...
                                    XX + XX]
                                  ...
@@ -205,8 +266,7 @@ class Result(object):
 
         Args:
             circuit (str or QuantumCircuit or None): reference to a quantum circuit
-                If None and there is only one circuit available, returns
-                that one.
+                If None and there is only one circuit available, returns that one.
 
         Returns:
             dict: A dictionary of data for the different backends.
@@ -216,23 +276,22 @@ class Result(object):
                 error occurred while fetching the data.
         """
         try:
-            return self._get_experiment(circuit).data
+            return self._get_experiment_result(circuit).data
         except (KeyError, TypeError):
             raise QISKitError('No data for circuit "{0}"'.format(circuit))
 
-    def _get_experiment(self, key=None):
-        """Return an experiment from a given key.
+    def _get_experiment_result(self, key=None):
+        """Return a single experiment result from a given key identifying that experiment.
 
         Args:
-            key (str or QuantumCircuit or None): reference to a quantum circuit
-                If None and there is only one circuit available, returns
-                that one.
+            key (str or QuantumCircuit or None): reference to a quantum experiment
+                If None and there is only one circuit available, returns that one.
 
         Returns:
-            ExperimentResult: an Experiment.
+            ExperimentResult: the result of a single experiment.
 
         Raises:
-            QISKitError: if there is no data for the circuit, or an unhandled
+            QISKitError: if there is no result data for the experiment, or an unhandled
                 error occurred while fetching the data.
         """
         if self._is_error():
@@ -250,38 +309,60 @@ class Result(object):
 
         return self.results[key]
 
-    def get_counts(self, circuit=None):
-        """Get the histogram data of circuit name.
+    def get_memory(self, circuit=None):
+        """Get the sequence of memory states (readouts) for each shot
 
-        The data from the a qasm circuit is dictionary of the format
+        The data from the experiment is a list of format
+        ['00000', '01000', '10100', '10100', '11101', '11100', '00101', ..., '01010']
+
+        Args:
+            circuit (str or QuantumCircuit or None): reference to a quantum circuit
+                If None and there is only one circuit available, returns that one.
+
+        Returns:
+            List[str]: the list of each outcome, formatted according to
+                registers in circuit.
+
+        Raises:
+            QISKitError: if there is no memory data for the circuit.
+        """
+        try:
+            return self._get_experiment_result(circuit).memory
+        except KeyError:
+            raise QISKitError('No memory data for circuit "{0}".'.format(circuit))
+
+
+    def get_counts(self, circuit=None):
+        """Get the histogram data of circuit.
+
+        The data from the experiment is a dictionary of format
         {'00000': XXXX, '00001': XXXXX}.
 
         Args:
             circuit (str or QuantumCircuit or None): reference to a quantum circuit
-                If None and there is only one circuit available, returns
-                that one.
+                If None and there is only one circuit available, returns that one.
 
         Returns:
-            Dictionary: Counts {'00000': XXXX, '00001': XXXXX}.
+            Dictionary{str: int}: each outcome count, formatted according to
+                registers in circuit.
 
         Raises:
             QISKitError: if there are no counts for the circuit.
         """
         try:
-            return self._get_experiment(circuit).counts
+            return self._get_experiment_result(circuit).counts
         except KeyError:
-            raise QISKitError('No counts for circuit "{0}"'.format(circuit))
+            raise QISKitError('No counts for circuit "{0}".'.format(circuit))
 
     def get_statevector(self, circuit=None):
-        """Get the final statevector of circuit name.
+        """Get the final statevector of circuit name/instance.
 
         The data is a list of complex numbers
         [1.+0.j, 0.+0.j].
 
         Args:
             circuit (str or QuantumCircuit or None): reference to a quantum circuit
-                If None and there is only one circuit available, returns
-                that one.
+                If None and there is only one circuit available, returns that one.
 
         Returns:
             list[complex]: list of 2^n_qubits complex amplitudes.
@@ -290,20 +371,19 @@ class Result(object):
             QISKitError: if there is no statevector for the circuit.
         """
         try:
-            return self._get_experiment(circuit).statevector
+            return self._get_experiment_result(circuit).statevector
         except KeyError:
-            raise QISKitError('No statevector for circuit "{0}"'.format(circuit))
+            raise QISKitError('No statevector for circuit "{0}".'.format(circuit))
 
     def get_unitary(self, circuit=None):
-        """Get the final unitary of circuit name.
+        """Get the final unitary of circuit name/instance.
 
         The data is a matrix of complex numbers
         [[1.+0.j, 0.+0.j], .. ].
 
         Args:
             circuit (str or QuantumCircuit or None): reference to a quantum circuit
-                If None and there is only one circuit available, returns
-                that one.
+                If None and there is only one circuit available, returns that one.
 
         Returns:
             list[list[complex]]: list of 2^n_qubits x 2^n_qubits complex amplitudes.
@@ -312,12 +392,12 @@ class Result(object):
             QISKitError: if there is no unitary for the circuit.
         """
         try:
-            return self._get_experiment(circuit).unitary
+            return self._get_experiment_result(circuit).unitary
         except KeyError:
-            raise QISKitError('No unitary for circuit "{0}"'.format(circuit))
+            raise QISKitError('No unitary for circuit "{0}".'.format(circuit))
 
     def get_snapshots(self, circuit=None):
-        """Get snapshots recorded during the run.
+        """Get snapshots recorded during the run for the circuit name/instance.
 
         The data is a dictionary:
         where keys are requested snapshot slots.
@@ -325,8 +405,7 @@ class Result(object):
 
         Args:
             circuit (str or QuantumCircuit or None): reference to a quantum circuit
-                If None and there is only one circuit available, returns
-                that one.
+                If None and there is only one circuit available, returns that one.
 
         Returns:
             dict[slot: dict[str: array]]: list of 2^n_qubits complex amplitudes.
@@ -335,19 +414,18 @@ class Result(object):
             QISKitError: if there are no snapshots for the circuit.
         """
         try:
-            return self._get_experiment(circuit).snapshots
+            return self._get_experiment_result(circuit).snapshots
         except KeyError:
-            raise QISKitError('No snapshots for circuit "{0}"'.format(circuit))
+            raise QISKitError('No snapshots for circuit "{0}".'.format(circuit))
 
     def get_snapshot(self, slot=None, circuit=None):
-        """Get snapshot at a specific slot.
+        """Get snapshot at a specific slot for the circuit name/instance.
 
         Args:
             slot (str): snapshot slot to retrieve. If None and there is only one
                 slot, return that one.
             circuit (str or QuantumCircuit or None): reference to a quantum circuit
-                If None and there is only one circuit available, returns
-                that one.
+                If None and there is only one circuit available, returns that one.
 
         Returns:
             dict[slot: dict[str: array]]: list of 2^n_qubits complex amplitudes.
