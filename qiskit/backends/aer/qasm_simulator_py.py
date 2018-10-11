@@ -77,8 +77,10 @@ import logging
 
 import numpy as np
 
-from qiskit import qobj
-from qiskit.result._utils import copy_qasm_from_qobj_into_result, result_from_old_style_dict
+from qiskit.qobj import Result as QobjResult
+from qiskit.qobj import ExperimentResult as QobjExperimentResult
+from qiskit.result import Result
+from qiskit.result._utils import copy_qasm_from_qobj_into_result
 from qiskit.backends import BaseBackend
 from qiskit.backends.aer.aerjob import AerJob
 from ._simulatorerror import SimulatorError
@@ -286,8 +288,8 @@ class QasmSimulatorPy(BaseBackend):
 
         for circuit in qobj.experiments:
             experiment_result = self.run_circuit(circuit)
-            experiment_result['header'] = circuit.header
-            result_list.append(experiment_result)
+            experiment_result['header'] = circuit.header.as_dict()
+            result_list.append(QobjExperimentResult(**experiment_result))
 
         end = time.time()
 
@@ -303,7 +305,7 @@ class QasmSimulatorPy(BaseBackend):
         copy_qasm_from_qobj_into_result(qobj, result)
 
         experiment_names = [circuit.header.name for circuit in qobj.experiments]
-        return Result(qobj.Result(**result), experiment_names)
+        return Result(QobjResult(**result), experiment_names)
 
     def run_circuit(self, circuit):
         """Run an experiment (circuit) and return a single experiment result.
@@ -408,8 +410,7 @@ class QasmSimulatorPy(BaseBackend):
             'snapshots': self._snapshots
         }
         end = time.time()
-        return {'backend_name': circuit.header.name,
-                'seed': seed,
+        return {'seed': seed,
                 'shots': self._shots,
                 'data': data,
                 'status': 'DONE',

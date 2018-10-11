@@ -107,7 +107,7 @@ class CliffordSimulator(BaseBackend):
 
     DEFAULT_CONFIGURATION = {
         'backend_name': 'clifford_simulator',
-        'backend_version': '1.0'
+        'backend_version': '1.0',
         'n_qubits': -1,
         'url': 'https://github.com/QISKit/qiskit-terra/src/qasm-simulator',
         'simulator': True,
