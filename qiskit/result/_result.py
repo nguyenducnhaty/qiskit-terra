@@ -33,6 +33,7 @@ class ExperimentResult(object):
         self.compiled_circuit_qasm = ''
         self.status = _status_or_success(qobj_experiment_result)
         self.data = qobj_experiment_result.data
+        self.header = qobj_experiment_result.header
 
     @property
     def memory(self):
@@ -84,7 +85,7 @@ class Result(object):
 
         # postprocessing to make result data more human readable for the qiskit user
         for _, experiment_result in self.results.items():
-            _format_result(experiment_result)
+            self._format_result(experiment_result)
 
     def __str__(self):
         """Get the status of the run.
@@ -147,7 +148,7 @@ class Result(object):
 
     def _separate_bitstring(self, bitstring):
         """Separate a bitstring according to the registers defined in the result header."""
-        def _register_sizes(labels):
+        def _register_labels_to_register_sizes(labels):
             """Find the size of each quantum/classical register based on the qubit/clbit
             labels in the header."""
             register_sizes = defaultdict(int)
@@ -158,7 +159,8 @@ class Result(object):
         if 'clbit_labels' not in self.header:
             return bitstring
 
-        classical_register_sizes = _register_sizes(self.header['clbit_labels'])
+        clreg_sizes = _register_labels_to_register_sizes(self.header['clbit_labels'])
+        print(clreg_sizes)
 
         # sort the classical bits in order of registers (q1[1], q1[0], q0[2], q0[1], q0[0])
         # TODO: bug 1 when None exists in the qubit_labels
@@ -169,7 +171,7 @@ class Result(object):
         # insert spaces
         substrings = []
         running_index = 0
-        for _, value OrderedDict(sorted(classical_register_sizes.items())):
+        for _, value in OrderedDict(sorted(clreg_sizes.items())):
             substrings = bitstring[running_index : bistring[value] + 1]
             running_index += bistring[value] + 1
         ' '.join(substrings)
@@ -187,12 +189,15 @@ class Result(object):
         Returns:
             ExperimentResult: formatted result for that experiment
         """
-        if exp_result.data.get('memory') and not exp_result.data.get('counts'):
+        # create histogram if not already created by backend
+        if 'memory' in exp_result.data and not 'counts' in exp_result.data:
             exp_result.data['counts'] = self._histogram(exp_result.data['memory'])
 
-        exp_result.data['memory'] = [_separate_bitstring(_hex_to_bin(element))
-                                     for element in exp_result.data.get('memory', [])]
-        exp_result.data['counts'] = {_separate_bitstring(_hex_to_bin(key)) : val
+        # for both memory and counts, convert to hex and divide up by registers
+        if 'memory' in exp_result.data:
+            exp_result.data['memory'] = [self._separate_bitstring(self._hex_to_bin(element))
+                                         for element in exp_result.data.get('memory', [])]
+        exp_result.data['counts'] = {self._separate_bitstring(self._hex_to_bin(key)) : val
                                      for key, val in exp_result.data.get('counts', {}).items()}
 
     def get_status(self):

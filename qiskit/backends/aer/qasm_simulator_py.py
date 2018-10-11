@@ -286,10 +286,10 @@ class QasmSimulatorPy(BaseBackend):
 
         end = time.time()
 
-        result = {'backend': self._configuration['name'],
-                  'id': qobj.qobj_id,
+        result = {'backend_name': self._configuration['name'],
+                  'qobj_id': qobj.qobj_id,
                   'job_id': job_id,
-                  'result': result_list,
+                  'results': result_list,
                   'status': 'COMPLETED',
                   'success': True,
                   'time_taken': (end - start)}
