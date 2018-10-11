@@ -77,6 +77,7 @@ import logging
 
 import numpy as np
 
+from qiskit import qobj
 from qiskit.result._utils import copy_qasm_from_qobj_into_result, result_from_old_style_dict
 from qiskit.backends import BaseBackend
 from qiskit.backends.aer.aerjob import AerJob
@@ -89,11 +90,14 @@ class QasmSimulatorPy(BaseBackend):
     """Python implementation of a qasm simulator."""
 
     DEFAULT_CONFIGURATION = {
-        'name': 'qasm_simulator_py',
+        'backend_name': 'qasm_simulator_py',
+        'backend_version': '2.0',
+        'n_qubits': -1,
         'url': 'https://github.com/QISKit/qiskit-terra',
         'simulator': True,
         'local': True,
-        'description': 'A python simulator for qasm files',
+        'conditional': True,
+        'description': 'A python simulator for qasm experiments',
         'coupling_map': 'all-to-all',
         'basis_gates': 'u1,u2,u3,cx,id,snapshot'
     }
@@ -282,11 +286,13 @@ class QasmSimulatorPy(BaseBackend):
 
         for circuit in qobj.experiments:
             experiment_result = self.run_circuit(circuit)
+            experiment_result['header'] = circuit.header
             result_list.append(experiment_result)
 
         end = time.time()
 
-        result = {'backend_name': self._configuration['name'],
+        result = {'backend_name': self._configuration['backend_name'],
+                  'backend_version': self._configuration['backend_version'],
                   'qobj_id': qobj.qobj_id,
                   'job_id': job_id,
                   'results': result_list,
@@ -296,8 +302,8 @@ class QasmSimulatorPy(BaseBackend):
 
         copy_qasm_from_qobj_into_result(qobj, result)
 
-        return result_from_old_style_dict(
-            result, [circuit.header.name for circuit in qobj.experiments])
+        experiment_names = [circuit.header.name for circuit in qobj.experiments]
+        return Result(qobj.Result(**result), experiment_names)
 
     def run_circuit(self, circuit):
         """Run an experiment (circuit) and return a single experiment result.
@@ -390,7 +396,7 @@ class QasmSimulatorPy(BaseBackend):
                     params = operation.params
                     self._add_qasm_snapshot(params[0])
                 else:
-                    backend = self._configuration['name']
+                    backend = self._configuration['backend_name']
                     err_msg = '{0} encountered unrecognized operation "{1}"'
                     raise SimulatorError(err_msg.format(backend,
                                                         operation.name))
@@ -402,7 +408,7 @@ class QasmSimulatorPy(BaseBackend):
             'snapshots': self._snapshots
         }
         end = time.time()
-        return {'name': circuit.header.name,
+        return {'backend_name': circuit.header.name,
                 'seed': seed,
                 'shots': self._shots,
                 'data': data,

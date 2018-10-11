@@ -103,11 +103,14 @@ class UnitarySimulator(BaseBackend):
     """Python implementation of a unitary simulator."""
 
     DEFAULT_CONFIGURATION = {
-        'name': 'unitary_simulator',
+        'backend_name': 'unitary_simulator',
+        'backend_version': 1.0,
+        'n_qubits': -1,
         'url': 'https://github.com/QISKit/qiskit-terra',
         'simulator': True,
         'local': True,
-        'description': 'A python simulator for unitary matrix',
+        'conditional': False,
+        'description': 'A python simulator for unitary matrix corresponding to a circuit',
         'coupling_map': 'all-to-all',
         'basis_gates': 'u1,u2,u3,cx,id'
     }

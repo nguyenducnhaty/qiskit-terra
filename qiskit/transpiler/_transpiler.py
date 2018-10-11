@@ -62,7 +62,8 @@ def compile(circuits, backend,
     # 2. do all circuit have the same basis set?
     # 3. do they all have same registers etc?
     backend_conf = backend.configuration()
-    backend_name = backend_conf['name']
+    # TODO: only get backend_name once all backend configurations report that
+    backend_name = backend_conf.get('backend_name') or backend_conf.get('name')
     # Check for valid parameters for the experiments.
     if hpc is not None and \
             not all(key in hpc for key in ('multi_shot_optimization', 'omp_num_threads')):
