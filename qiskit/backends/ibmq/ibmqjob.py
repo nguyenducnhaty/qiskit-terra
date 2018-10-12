@@ -114,8 +114,8 @@ class IBMQJob(BaseJob):
     """
     _executor = futures.ThreadPoolExecutor()
 
-    def __init__(self, backend, job_id, api, is_device, qobj=None,
-                 creation_date=None, api_status=None, **kwargs):
+    def __init__(self, backend, job_id, api, qobj=None, creation_date=None,
+                 api_status=None, **kwargs):
         """IBMQJob init function.
 
         We can instantiate jobs from two sources: A QObj, and an already submitted job returned by
@@ -126,7 +126,6 @@ class IBMQJob(BaseJob):
             job_id (str): The job ID of an already submitted job. Pass `None`
                 if you are creating a new one.
             api (IBMQuantumExperience): IBM Q API
-            is_device (bool): whether backend is a real device  # TODO: remove this after Qobj
             qobj (Qobj): The Quantum Object. See notes below
             creation_date (str): When the job was run.
             api_status (str): `status` field directly from the API response.
@@ -182,7 +181,6 @@ class IBMQJob(BaseJob):
             else:
                 self.status()
         self._queue_position = None
-        self._is_device = is_device
 
         def current_utc_time():
             """Gets the current time in UTC format"""
@@ -510,7 +508,7 @@ class IBMQJobPreQobj(IBMQJob):
         return submit_info
 
     def _result_from_job_response(self, job_response):
-        if self._is_device:
+        if not self.backend().configuration()['simulator']:
             _reorder_bits(job_response)
 
         experiment_results = []
@@ -545,7 +543,7 @@ def _reorder_bits(job_data):
         job_data (dict): dict with the bare contents of the API.get_job request.
 
     Raises:
-            JobError: raised if the creg sizes don't add up in result header.
+        JobError: raised if the creg sizes don't add up in result header.
     """
     for circuit_result in job_data['qasms']:
         if 'metadata' in circuit_result:
