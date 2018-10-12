@@ -710,27 +710,26 @@
                             "type": "number"
                         },
                         "clbit_labels": {
-                            "description": "A list of length memory_slots (from backend.configuration or in this header), where each element is either [creg_name, n] to identify the corresponding memory slot as the n-th element of creg creg_name, or null to identify that the corresponding memory slot has no corresponding creg",
+                            "description": "A list of length memory_slots, where each element is [creg_name, n] to identify the corresponding memory slot as the n-th element of creg creg_name.",
                             "items": [
                                 {
                                     "items": [
                                         {
                                             "minLength": 1,
-                                            "title": "clreg",
+                                            "title": "creg",
                                             "type": "string"
                                         },
                                         {
-                                            "description": "The register slot of the clreg",
+                                            "description": "The clbit index within creg",
                                             "minimum": 0,
-                                            "title": "size",
+                                            "title": "clbit index",
                                             "type": "integer"
                                         }
                                     ],
                                     "maxItems": 2,
                                     "minItems": 2,
                                     "type": [
-                                        "array",
-                                        "null"
+                                        "array"
                                     ]
                                 }
                             ],
@@ -748,9 +747,9 @@
                                         "type": "string"
                                     },
                                     {
-                                        "description": "The qubit number within the qreg",
+                                        "description": "The qubit index within the qreg",
                                         "minimum": 0,
-                                        "title": "qubit number",
+                                        "title": "qubit index",
                                         "type": "integer"
                                     }
                                 ],

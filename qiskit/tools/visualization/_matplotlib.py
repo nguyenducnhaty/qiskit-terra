@@ -137,12 +137,10 @@ class MatplotlibDrawer:
         self._ops = self._ast['instructions']
 
     def _registers(self):
-        # NOTE: formats of clbit and qubit are different!
         header = self._ast['header']
         self._creg = []
         for e in header['clbit_labels']:
-            for i in range(e[1]):
-                self._creg.append(Register(name=e[0], index=i))
+             self._creg.append(Register(name=e[0], index=e[1]))            
         assert len(self._creg) == header['number_of_clbits']
         self._qreg = []
         for e in header['qubit_labels']:

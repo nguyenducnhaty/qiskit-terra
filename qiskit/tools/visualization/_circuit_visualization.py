@@ -396,7 +396,7 @@ class QCircuitImage(object):
     The class targets the \\LaTeX package Q-circuit
     (https://arxiv.org/pdf/quant-ph/0406003).
 
-    Thanks to Eric Sabo for the initial implementation for QISKit.
+    Thanks to Eric Sabo for the initial implementation for Qiskit.
     """
 
     def __init__(self, circuit, scale, style=None):
@@ -437,10 +437,10 @@ class QCircuitImage(object):
         # Array to hold the \\LaTeX commands to generate a circuit image.
         self._latex = []
 
-        # Variable to hold image depth (width)
+        # Variable to hold image depth (horizontal width)
         self.img_depth = 0
 
-        # Variable to hold image width (height)
+        # Variable to hold image width (vertical height)
         self.img_width = 0
 
         # Variable to hold total circuit depth
@@ -461,26 +461,31 @@ class QCircuitImage(object):
 
         #################################
         self.header = self.circuit['header']
+
+        self.qubit_list = []
         self.qregs = OrderedDict(_get_register_specs(
             self.header['qubit_labels']))
-        self.qubit_list = []
-        for qr in self.qregs:
-            for i in range(self.qregs[qr]):
-                self.qubit_list.append((qr, i))
-        self.cregs = OrderedDict()
-        if 'clbit_labels' in self.header:
-            for item in self.header['clbit_labels']:
-                self.cregs[item[0]] = item[1]
-        self.clbit_list = []
-        cregs = self.cregs
-        if self._style.reverse:
-            self.orig_cregs = self.cregs
-            cregs = reversed(self.cregs)
-        for cr in cregs:
-            for i in range(self.cregs[cr]):
-                self.clbit_list.append((cr, i))
+        for qr, idx in self.qregs.items():
+            self.qubit_list.append((qr, idx))
         self.ordered_regs = [(item[0], item[1]) for
                              item in self.header['qubit_labels']]
+
+        self.cregs = OrderedDict()
+        self.clbit_list = []                    
+        if 'clbit_labels' in self.header:
+            self.cregs = OrderedDict(_get_register_specs(
+                self.header['clbit_labels']))
+            for cr, idx in self.cregs.items():
+                self.clbit_list.append((cr, idx))
+            self.ordered_regs.extend([(item[0], item[1]) for
+                                      item in self.header['clbit_labels']])
+
+        print("qregs: ", self.qregs)
+        print("cregs: ", self.cregs)
+        print("qubit_list: ", self.qubit_list)
+        print("clbit_list: ", self.clbit_list)
+        print("ordered_regs: ", self.ordered_regs)
+        
         if self._style.reverse:
             reg_size = []
             reg_labels = []
@@ -499,16 +504,9 @@ class QCircuitImage(object):
                 index = new_index
             self.ordered_regs = new_ordered_regs
 
-        if 'clbit_labels' in self.header:
-            for clabel in self.header['clbit_labels']:
-                if self._style.reverse:
-                    for cind in reversed(range(clabel[1])):
-                        self.ordered_regs.append((clabel[0], cind))
-                else:
-                    for cind in range(clabel[1]):
-                        self.ordered_regs.append((clabel[0], cind))
         self.img_regs = {bit: ind for ind, bit in
                          enumerate(self.ordered_regs)}
+        print("img_regs: ", self.img_regs)
         self.img_width = len(self.img_regs)
         self.wire_type = {}
         for key, value in self.ordered_regs:

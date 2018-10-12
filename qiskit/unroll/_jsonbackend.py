@@ -14,7 +14,7 @@ The input is a AST and a basis set and returns a json memory object::
      "number_of_qubits": 2, // int
      "number_of_clbits": 2, // int
      "qubit_labels": [["q", 0], ["v", 0]], // list[list[string, int]]
-     "clbit_labels": [["c", 2]], // list[list[string, int]]
+     "clbit_labels": [["c", 0], ["c", 1]], // list[list[string, int]]
      }
      "instructions": // list[map]
         [
