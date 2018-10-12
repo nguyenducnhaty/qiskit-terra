@@ -111,8 +111,9 @@ class JsonBackend(UnrollerBackend):
         sz = size of the register
         """
         assert size >= 0, "invalid creg size"
-        self._cbit_order.append([name, size])
+        
         for j in range(size):
+            self._cbit_order.append([name, j])            
             self._cbit_order_internal[(name, j)] = self._number_of_cbits + j
         self._number_of_cbits += size
         self.circuit['header']['number_of_clbits'] = self._number_of_cbits

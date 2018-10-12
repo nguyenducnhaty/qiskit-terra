@@ -16,20 +16,19 @@ Two quantum circuit drawers based on:
 
 import json
 import logging
-import operator
+import math
 import os
 import re
 import subprocess
 import tempfile
 from collections import OrderedDict
 from io import StringIO
-from itertools import groupby
-from math import ceil
 import warnings
 
 import numpy as np
 from PIL import Image
 
+from qiskit.qobj._utils import get_register_sizes
 from qiskit._qiskiterror import QISKitError
 from qiskit.dagcircuit import DAGCircuit
 from qiskit.tools.visualization._error import VisualizationError
@@ -463,7 +462,7 @@ class QCircuitImage(object):
         self.header = self.circuit['header']
 
         self.qubit_list = []
-        self.qregs = OrderedDict(_get_register_specs(
+        self.qregs = OrderedDict(get_register_sizes(
             self.header['qubit_labels']))
         for qr in self.qregs:
             for i in range(self.qregs[qr]):
@@ -474,7 +473,7 @@ class QCircuitImage(object):
         self.cregs = OrderedDict()
         self.clbit_list = []                    
         if 'clbit_labels' in self.header:
-            self.cregs = OrderedDict(_get_register_specs(
+            self.cregs = OrderedDict(get_register_sizes(
                 self.header['clbit_labels']))
             for cr in self.cregs:
                 for i in range(self.cregs[cr]):
@@ -826,7 +825,7 @@ class QCircuitImage(object):
         # the qubit/cbit labels plus initial states is 2 more
         # the wires poking out at the ends is 2 more
         sum_column_widths = sum(1 + v / 3 for v in max_column_width.values())
-        return columns + 1, ceil(sum_column_widths) + 4
+        return columns + 1, math.ceil(sum_column_widths) + 4
 
     def _get_beamer_page(self):
         """Get height, width & scale attributes for the beamer page.
@@ -1352,28 +1351,6 @@ class QCircuitImage(object):
         if self._style.reverse:
             return origin + 1
         return origin - 1
-
-
-def _get_register_specs(bit_labels):
-    """
-    Get the number and size of unique registers from bit_labels list.
-
-    Args:
-        bit_labels (list): this list is of the form::
-
-            [['reg1', 0], ['reg1', 1], ['reg2', 0]]
-
-            which indicates a register named "reg1" of size 2
-            and a register named "reg2" of size 1. This is the
-            format of classic and quantum bit labels in qobj
-            header.
-
-    Yields:
-        tuple: iterator of register_name:size pairs.
-    """
-    it = groupby(bit_labels, operator.itemgetter(0))
-    for register_name, sub_it in it:
-        yield register_name, max(ind[1] for ind in sub_it) + 1
 
 
 def _truncate_float(matchobj, format_str='0.2g'):
