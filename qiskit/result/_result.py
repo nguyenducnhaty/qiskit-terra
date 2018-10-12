@@ -150,36 +150,25 @@ class Result(object):
         # sort the classical bits in order of registers (e.g. q1[1], q1[0], q0[2], q0[1], q0[0])
         # TODO: bug 1 when None exists in the qubit_labels
         # TODO: but 2 go by place of QuantumRegister in the circuit, not register's name
-        print(exp_result_header['qubit_labels'])
-        print(bitstring)
         key = lambda index: (exp_result_header['qubit_labels'][index][0], exp_result_header['qubit_labels'][index][1])
         reordered_string = ''.join([bitstring[i] for i in sorted(range(len(bitstring)), key=key)])
         return reordered_string
 
     def _separate_bitstring(self, bitstring, exp_result_header):
         """Separate a bitstring according to the registers defined in the result header."""
-        def _register_labels_to_register_sizes(labels):
-            """Find the size of each quantum/classical register based on the qubit/clbit
-            labels in the header."""
-            register_sizes = defaultdict(int)
-            for label in labels:
-                if label:
-                    register_sizes[label[0]] += 1
-            return dict(register_sizes)
-
+        
         if 'clbit_labels' not in exp_result_header:
             return bitstring
 
-        clreg_sizes = _register_labels_to_register_sizes(exp_result_header['clbit_labels'])
+        clreg_sizes = exp_result_header['clreg_sizes']
 
         # insert spaces
         substrings = []
         running_index = 0
-        for _, value in OrderedDict(sorted(clreg_sizes.items())):
-            substrings = bitstring[running_index : value + 1]
-            running_index += value + 1
-        ' '.join(substrings)
-        return substrings
+        for reg, size in clreg_sizes:
+            substrings.append(bitstring[running_index : running_index + size])
+            running_index += size
+        return ' '.join(substrings)
 
     def _format_result(self, exp_result):
         """Format result coming from backend to present to the qiskit user.
@@ -198,22 +187,20 @@ class Result(object):
         # for both memory and counts, convert to hex and divide up by registers
         memory_list = []
         for element in exp_result.data.get('memory', []):
-            print(element)
             if element.startswith('0x'):
                 element = self._hex_to_bin(element)
-            print(element)
-            element = self._reorder_bitstring(element, exp_result.header)
+            #element = self._reorder_bitstring(element, exp_result.header)
             element = self._separate_bitstring(element, exp_result.header)
             memory_list.append(element)
         exp_result.data['memory'] = memory_list
 
         counts_dict = {}
         for key, val in exp_result.data.get('counts', {}).items():
-            if element.startswith('0x'):            
+            if key.startswith('0x'):            
                 key = self._hex_to_bin(key)
-            key = self._reorder_bitstring(key, exp_result.header)
+            #key = self._reorder_bitstring(key, exp_result.header)
             key = self._separate_bitstring(key, exp_result.header)
-            counts_dict.insert(key, value)
+            counts_dict[key] = val
         exp_result.data['counts'] = counts_dict
 
     def get_status(self):

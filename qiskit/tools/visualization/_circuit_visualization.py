@@ -28,7 +28,6 @@ import warnings
 import numpy as np
 from PIL import Image
 
-from qiskit.qobj._utils import get_register_sizes
 from qiskit._qiskiterror import QISKitError
 from qiskit.dagcircuit import DAGCircuit
 from qiskit.tools.visualization._error import VisualizationError
@@ -462,8 +461,7 @@ class QCircuitImage(object):
         self.header = self.circuit['header']
 
         self.qubit_list = []
-        self.qregs = OrderedDict(get_register_sizes(
-            self.header['qubit_labels']))
+        self.qregs = OrderedDict(self.header['qureg_sizes'])
         for qr in self.qregs:
             for i in range(self.qregs[qr]):
                 self.qubit_list.append((qr, i))
@@ -472,23 +470,14 @@ class QCircuitImage(object):
 
         self.cregs = OrderedDict()
         self.clbit_list = []                    
-        if 'clbit_labels' in self.header:
-            self.cregs = OrderedDict(get_register_sizes(
-                self.header['clbit_labels']))
+        if 'clbit_labels' in self.header and 'clreg_sizes' in self.header:
+            self.cregs = OrderedDict(self.header['clreg_sizes'])
             for cr in self.cregs:
                 for i in range(self.cregs[cr]):
                     self.clbit_list.append((cr, i))
             self.ordered_regs.extend([(item[0], item[1]) for
                                       item in self.header['clbit_labels']])
 
-        print("qubit_labels", self.header['qubit_labels'])
-        print("clbit_labels", self.header['clbit_labels'])
-        print("qregs: ", self.qregs)
-        print("cregs: ", self.cregs)
-        print("qubit_list: ", self.qubit_list)
-        print("clbit_list: ", self.clbit_list)
-        print("ordered_regs: ", self.ordered_regs)
-        
         if self._style.reverse:
             reg_size = []
             reg_labels = []
@@ -509,7 +498,6 @@ class QCircuitImage(object):
 
         self.img_regs = {bit: ind for ind, bit in
                          enumerate(self.ordered_regs)}
-        print("img_regs: ", self.img_regs)
         self.img_width = len(self.img_regs)
         self.wire_type = {}
         for key, value in self.ordered_regs:

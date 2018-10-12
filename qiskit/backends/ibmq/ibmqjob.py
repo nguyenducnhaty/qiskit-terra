@@ -24,7 +24,6 @@ import numpy
 from IBMQuantumExperience import ApiError
 
 from qiskit.qobj import qobj_to_dict
-from qiskit.qobj._utils import get_register_sizes
 from qiskit.transpiler import transpile
 from qiskit.backends import BaseJob, JobError, JobTimeoutError
 from qiskit.backends.jobstatus import JobStatus, JOB_FINAL_STATES
@@ -535,7 +534,7 @@ class IBMQJobPreQobj(IBMQJob):
 
 
 def _reorder_bits(job_data):
-    """Temporary fix for ibmq backends.
+    """Temporary fix for ibmq backends (those that don't yet run qobj).
 
     For every ran circuit, get reordering information from qobj
     and apply reordering on result.
@@ -577,7 +576,7 @@ def _reorder_bits(job_data):
                                    for b in compact_key])
 
             # insert spaces to signify different classical registers
-            cregs = get_register_sizes(circ['header']['clbit_labels'])
+            cregs = circ['header']['clreg_sizes']
             if sum([creg[1] for creg in cregs]) != num_clbits:
                 raise JobError("creg sizes don't add up in result header.")
             creg_begin_pos = []

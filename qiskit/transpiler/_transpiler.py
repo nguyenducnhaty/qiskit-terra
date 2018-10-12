@@ -262,7 +262,6 @@ def _dags_2_qobj_parallel(dag, config=None, basis_gates=None,
         'basis_gates': basis_gates,
         'layout': dag.layout,
         'memory_slots': sum(dag.cregs.values()),
-        # TODO: `n_qubits` is not part of the qobj spec, but needed for the simulator.
         'n_qubits': sum(dag.qregs.values())})
     experiment.config = QobjItem(**experiment_config)
 
