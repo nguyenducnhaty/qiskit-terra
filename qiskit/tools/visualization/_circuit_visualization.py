@@ -465,8 +465,9 @@ class QCircuitImage(object):
         self.qubit_list = []
         self.qregs = OrderedDict(_get_register_specs(
             self.header['qubit_labels']))
-        for qr, idx in self.qregs.items():
-            self.qubit_list.append((qr, idx))
+        for qr in self.qregs:
+            for i in range(self.qregs[qr]):
+                self.qubit_list.append((qr, i))
         self.ordered_regs = [(item[0], item[1]) for
                              item in self.header['qubit_labels']]
 
@@ -475,11 +476,14 @@ class QCircuitImage(object):
         if 'clbit_labels' in self.header:
             self.cregs = OrderedDict(_get_register_specs(
                 self.header['clbit_labels']))
-            for cr, idx in self.cregs.items():
-                self.clbit_list.append((cr, idx))
+            for cr in self.cregs:
+                for i in range(self.cregs[cr]):
+                    self.clbit_list.append((cr, i))
             self.ordered_regs.extend([(item[0], item[1]) for
                                       item in self.header['clbit_labels']])
 
+        print("qubit_labels", self.header['qubit_labels'])
+        print("clbit_labels", self.header['clbit_labels'])
         print("qregs: ", self.qregs)
         print("cregs: ", self.cregs)
         print("qubit_list: ", self.qubit_list)
