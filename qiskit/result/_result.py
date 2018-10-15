@@ -146,36 +146,49 @@ class Result(object):
         counts = dict(Counter(outcomes))
         return counts
 
-    def _reorder_bitstring(self, bitstring, exp_result_header):
-        """Reorder bitstring in case the experiment could only measure q[i] -> c[i]"""
-        # sort the classical bits in order of registers (e.g. q1[1], q1[0], q0[2], q0[1], q0[0])
-        # TODO: bug 1 when None exists in the qubit_labels
-        # TODO: bug 2 go by place of QuantumRegister in the circuit, not register's name
-        key = lambda index: (exp_result_header['qubit_labels'][index][0], exp_result_header['qubit_labels'][index][1])
-        reordered_string = ''.join([bitstring[i] for i in sorted(range(len(bitstring)), key=key)])
-        return reordered_string
+    def _little_endian(self, bitstring, clbit_labels, creg_sizes):
+        """
+        Reorder the bitstring to little endian (Least Significant Bit last, and
+        Least Significant Register last).
+        """
+        # registers appearing first in the QuantumCircuit declaration are more significant
+        register_significance = lambda r: [i for i, reg in enumerate(creg_sizes) if reg[0] == r][0]
 
-    def _little_endian(self, bitstring, exp_result_header):
-        """Report the bitstring as little endian (Least Significant Bit on the right)."""
-        print("MAKING LITTLE INDIANS")
-        print('clbit_labels: ', exp_result_header['clbit_labels'])
-        print('bitstring:', bitstring)
+        # higher indices are more significant
+        index_significance = lambda i: -i
 
-    def _separate_bitstring(self, bitstring, exp_result_header):
+        # sort in ascending order: more significant register first, more significant bit first
+        key = lambda position: (register_significance(clbit_labels[position][0]),
+                                index_significance(clbit_labels[position][1]))
+        return ''.join([bitstring[i] for i in sorted(range(len(bitstring)), key=key)])
+
+    def _separate_bitstring(self, bitstring, creg_sizes):
         """Separate a bitstring according to the registers defined in the result header."""
-        
-        if 'clbit_labels' not in exp_result_header:
-            return bitstring
-
-        clreg_sizes = exp_result_header['clreg_sizes']
-
-        # insert spaces
         substrings = []
         running_index = 0
-        for reg, size in clreg_sizes:
+        for reg, size in creg_sizes:
             substrings.append(bitstring[running_index : running_index + size])
             running_index += size
         return ' '.join(substrings)
+
+    def _format_bitstring(self, bitstring, exp_result_header):
+        """
+        Convert from hex to binary, make little endian, and insert space between registers.
+        """
+        creg_sizes = exp_result_header.get('creg_sizes')
+        clbit_labels = exp_result_header.get('clbit_labels')
+
+        print(bitstring)
+        if bitstring.startswith('0x'):
+            bitstring = self._hex_to_bin(bitstring)
+        print(bitstring)
+        if clbit_labels and creg_sizes:
+            bitstring = self._little_endian(bitstring, clbit_labels, creg_sizes)
+        print(bitstring)
+        if creg_sizes:
+            bitstring = self._separate_bitstring(bitstring, creg_sizes)
+        
+        return bitstring
 
     def _format_exp_result(self, exp_result):
         """Format a single experiment result coming from backend to present
@@ -189,29 +202,18 @@ class Result(object):
         Args:
             exp_result (ExperimentResult): result of a single experiment
         """
-        # create histogram if not already created by backend
         if 'memory' in exp_result.data and not 'counts' in exp_result.data:
             exp_result.data['counts'] = self._histogram(exp_result.data['memory'])
 
-        # for both memory and counts, convert from hex to binary,
-        # make little endian, and insert space between registers
         memory_list = []
         for element in exp_result.data.get('memory', []):
-            if element.startswith('0x'):
-                element = self._hex_to_bin(element)
-            #element = self._reorder_bitstring(element, exp_result.header)
-            element = self._little_endian(element, exp_result.header)
-            element = self._separate_bitstring(element, exp_result.header)
+            element = self._format_bitstring(element, exp_result.header)
             memory_list.append(element)
         exp_result.data['memory'] = memory_list
 
         counts_dict = {}
         for key, val in exp_result.data.get('counts', {}).items():
-            if key.startswith('0x'):            
-                key = self._hex_to_bin(key)
-            #key = self._reorder_bitstring(key, exp_result.header)
-            key = self._little_endian(key, exp_result.header)            
-            key = self._separate_bitstring(key, exp_result.header)
+            key = self._format_bitstring(key, exp_result.header)
             counts_dict[key] = val
         exp_result.data['counts'] = counts_dict
 
@@ -463,6 +465,7 @@ class Result(object):
                 else:
                     raise QISKitError("You have to select a slot when there "
                                       "is more than one available")
+            print(snapshots_dict.keys())
             snapshot_dict = snapshots_dict[slot]
 
             snapshot_types = list(snapshot_dict.keys())

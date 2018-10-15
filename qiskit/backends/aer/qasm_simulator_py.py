@@ -141,7 +141,7 @@ class QasmSimulatorPy(BaseBackend):
                 self._statevector[ii] = 0
         # update classical state
         bit = 1 << cbit
-        self._classical_state = (self._classical_state & (~bit)) | (int(outcome) << cbit)
+        self._classical_state = (self._classical_state & (~bit)) | ((int(outcome)) << cbit)
 
     def _add_qasm_reset(self, qubit):
         """Apply the reset to the qubit.
@@ -176,7 +176,7 @@ class QasmSimulatorPy(BaseBackend):
         Args:
             slot (string): a label to identify the recorded snapshot
         """
-        self._snapshots.setdefault(slot,
+        self._snapshots.setdefault(str(int(slot)),
                                    {}).setdefault("statevector",
                                                   []).append(np.copy(self._statevector))
 
@@ -219,8 +219,6 @@ class QasmSimulatorPy(BaseBackend):
                   'success': True,
                   'time_taken': (end - start)}
         
-        print(result)
-
         copy_qasm_from_qobj_into_result(qobj, result)
 
         experiment_names = [experiment.header.name for experiment in qobj.experiments]
@@ -301,7 +299,7 @@ class QasmSimulatorPy(BaseBackend):
                 # Check if measure
                 elif operation.name == 'measure':
                     qubit = operation.qubits[0]
-                    cbit = operation.clbits[0]
+                    cbit = operation.memory[0]
                     self._add_qasm_measure(qubit, cbit)
                 # Check if reset
                 elif operation.name == 'reset':
@@ -319,9 +317,12 @@ class QasmSimulatorPy(BaseBackend):
                     err_msg = '{0} encountered unrecognized operation "{1}"'
                     raise SimulatorError(err_msg.format(backend,
                                                         operation.name))
-            # Turn classical_state (int) into bit string
-            outcomes.append(bin(self._classical_state)[2:].zfill(
-                self._number_of_cbits))
+            # Turn classical_state (int) into bit string and pad zero for unused cbits
+            outcome = bin(self._classical_state)[2:].zfill(self._number_of_cbits)
+
+            # Return a compact hexadecimal
+            outcomes.append(hex(int(outcome, 2)))
+
         data = {
             'memory': outcomes,
             'snapshots': self._snapshots

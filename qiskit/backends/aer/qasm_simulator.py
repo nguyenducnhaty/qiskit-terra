@@ -100,7 +100,6 @@ class QasmSimulator(BaseBackend):
         result['job_id'] = job_id
 
         print(result)
-
         copy_qasm_from_qobj_into_result(qobj, result)
 
         experiment_names = [experiment.header.name for experiment in qobj.experiments]
@@ -248,7 +247,7 @@ def launch(qobj, executable):
     try:
         with subprocess.Popen([executable, '-'],
                               stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
-            cin = json.dumps(qobj_to_dict(qobj, version='0.0.1'),
+            cin = json.dumps(qobj.as_dict(),
                              cls=QASMSimulatorEncoder).encode()
             cout, cerr = proc.communicate(cin)
         if cerr:

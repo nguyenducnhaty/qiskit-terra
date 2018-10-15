@@ -243,7 +243,6 @@ def _dags_2_qobj_parallel(dag, config=None, basis_gates=None,
     experiment = QobjExperiment.from_dict(json_circuit)
     # Step 3b: populate the Experiment configuration and header
     experiment.header.name = dag.name
-    # TODO: place in header or config?
     experiment_config = deepcopy(config or {})
     experiment_config.update({
         'memory_slots': sum(dag.cregs.values()),
