@@ -28,8 +28,7 @@ class UnrollerTest(QiskitTestCase):
         """Test DagUnroller.execute()"""
         ast = qasm.Qasm(filename=self._get_resource_path('qasm/example.qasm')).parse()
         dag_circuit = Unroller(ast, DAGBackend()).execute()
-        dag_unroller = DagUnroller(dag_circuit,
-                                   DAGBackend())
+        dag_unroller = DagUnroller(dag_circuit, DAGBackend())
         unroller_dag_circuit = dag_unroller.execute()
         expected_result = """\
 OPENQASM 2.0;
@@ -160,7 +159,6 @@ measure r[2] -> d[2];
     # We need to change the way we create clbit_labels and qubit_labels in order to
     # enable this test, as they are lists but the order is not important so comparing
     # them usually fails.
-    @unittest.skip("Temporary skipping")
     def test_from_dag_to_json(self):
         """Test DagUnroller with JSON backend."""
         ast = qasm.Qasm(filename=self._get_resource_path('qasm/example.qasm')).parse()
@@ -168,7 +166,7 @@ measure r[2] -> d[2];
         dag_unroller = DagUnroller(dag_circuit, JsonBackend())
         json_circuit = dag_unroller.execute()
         expected_result = {
-            'operations':
+            'instructions':
                 [
                     {'qubits': [5], 'texparams': ['0.5 \\pi', '0', '\\pi'],
                      'name': 'U', 'params': [1.5707963267948966, 0.0, 3.141592653589793]},
@@ -189,11 +187,15 @@ measure r[2] -> d[2];
                 ],
             'header':
                 {
-                    'number_of_clbits': 6,
-                    'qubit_labels': [['r', 0], ['r', 1], ['r', 2], ['q', 0], ['q', 1], ['q', 2]],
-                    'number_of_qubits': 6, 'clbit_labels': [['d', 3], ['c', 3]]
+                    'n_qubits': 6,
+                    'memory_slots': 6,
+                    'qreg_sizes': [['q', 3], ['r', 3]],
+                    'creg_sizes': [['c', 3], ['d', 3]],
+                    'qubit_labels': [['q', 0], ['q', 1], ['q', 2], ['r', 0], ['r', 1], ['r', 2]], 
+                    'clbit_labels': [['c', 0], ['c', 1], ['c', 2], ['d', 0], ['d', 1], ['d', 2]]
                 }
         }
+        self.maxDiff = None
 
         self.assertEqual(json_circuit, expected_result)
 
@@ -208,7 +210,7 @@ measure r[2] -> d[2];
         dag_unroller = DagUnroller(dag_circuit, JsonBackend(["cx", "u1", "u2", "u3"]))
         json_circuit = dag_unroller.execute()
         expected_result = {
-            'operations':
+            'instructions':
                 [
                     {'qubits': [5], 'texparams': ['0', '\\pi'], 'params': [0.0, 3.141592653589793],
                      'name': 'u2'},

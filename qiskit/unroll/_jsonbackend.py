@@ -11,12 +11,12 @@ The input is a AST and a basis set and returns a json memory object::
 
     {
      "header": {
-        "number_of_qubits": 2, // int
-        "number_of_clbits": 2, // int
+        "n_qubits": 2, // int
+        "memory_slots": 2, // int
         "qubit_labels": [["q", 0], ["c", 1], null], // list[list[string, int] or null]
         "clbit_labels": [["c", 0], ["c", 1]], // list[list[string, int]]
-        "qureg_sizes": [["q", 1], ["v", 1]], // list[list[string, int]]
-        "clreg_sizes": [["c", 2]]  // list[list[string, int]]
+        "qreg_sizes": [["q", 1], ["v", 1]], // list[list[string, int]]
+        "creg_sizes": [["c", 2]]  // list[list[string, int]]
         ""
      }
      "instructions": // list[map]
@@ -55,17 +55,17 @@ class JsonBackend(UnrollerBackend):
         self.circuit = {}
         self.circuit['instructions'] = []
         self.circuit['header'] = {
-            'number_of_qubits': 0,
-            'number_of_clbits': 0,
+            'n_qubits': 0,
+            'memory_slots': 0,
             'qubit_labels': [],
             'clbit_labels': [],
-            'qureg_sizes': [],
-            'clreg_sizes': []
+            'qreg_sizes': [],
+            'creg_sizes': []
         }
         self._number_of_qubits = 0
-        self._number_of_cbits = 0
-        self._qureg_sizes = []
-        self._clreg_sizes = []
+        self._number_of_clbits = 0
+        self._qreg_sizes = []
+        self._creg_sizes = []
         self._qubit_order = []
         self._cbit_order = []
         self._qubit_order_internal = {}
@@ -104,15 +104,15 @@ class JsonBackend(UnrollerBackend):
         """
         assert size >= 0, "invalid qreg size"
 
-        self._qureg_sizes.append([name, size])
+        self._qreg_sizes.append([name, size])
         for j in range(size):
             self._qubit_order.append([name, j])
             self._qubit_order_internal[(name, j)] = self._number_of_qubits + j
         self._number_of_qubits += size
         # TODO: avoid rewriting the same data over and over
-        self.circuit['header']['number_of_qubits'] = self._number_of_qubits
+        self.circuit['header']['n_qubits'] = self._number_of_qubits
+        self.circuit['header']['qreg_sizes'] = self._qreg_sizes        
         self.circuit['header']['qubit_labels'] = self._qubit_order
-        self.circuit['header']['qureg_sizes'] = self._qureg_sizes
 
     def new_creg(self, name, size):
         """Create a new classical register.
@@ -122,15 +122,15 @@ class JsonBackend(UnrollerBackend):
         """
         assert size >= 0, "invalid creg size"
 
-        self._clreg_sizes.append([name, size])
+        self._creg_sizes.append([name, size])
         for j in range(size):
             self._cbit_order.append([name, j])
-            self._cbit_order_internal[(name, j)] = self._number_of_cbits + j
-        self._number_of_cbits += size
+            self._cbit_order_internal[(name, j)] = self._number_of_clbits + j
+        self._number_of_clbits += size
         # TODO: avoid rewriting the same data over and over
-        self.circuit['header']['number_of_clbits'] = self._number_of_cbits
+        self.circuit['header']['memory_slots'] = self._number_of_clbits
+        self.circuit['header']['creg_sizes'] = self._creg_sizes        
         self.circuit['header']['clbit_labels'] = self._cbit_order
-        self.circuit['header']['clreg_sizes'] = self._clreg_sizes
 
     def define_gate(self, name, gatedata):
         """Define a new quantum gate.

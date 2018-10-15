@@ -21,7 +21,8 @@ The simulator is run using
     QasmSimulatorPy().run(qobj)
 
 Where the input is a Qobj object and the output is a AerJob object, which can
-later be queried for the Result object.
+later be queried for the Result object. The result will contain a 'memory' data
+field, which is a result of measurements for each shot.
 
 """
 import random
@@ -255,10 +256,8 @@ class QasmSimulatorPy(BaseBackend):
         Raises:
             SimulatorError: if an error occurred.
         """
-        # TODO: should not rely on header for functionality.
-        # The number_of_qubits and number_of_clbits should be in experiment payload.
-        self._number_of_qubits = experiment.header.number_of_qubits
-        self._number_of_cbits = experiment.header.number_of_clbits
+        self._number_of_qubits = experiment.config.n_qubits
+        self._number_of_cbits = experiment.config.memory_slots
         self._statevector = 0
         self._classical_state = 0
         self._snapshots = {}

@@ -10,75 +10,15 @@
 It simulates a unitary of a quantum circuit that has been compiled to run on
 the simulator. It is exponential in the number of qubits.
 
-The input is the circuit object and the output is the same circuit object with
-a result field added results['data']['unitary'] where the unitary is
-a 2**n x 2**n complex numpy array representing the unitary matrix.
+.. code-block:: python
 
+    UnitarySimulator().run(qobj)
 
-The input is
+Where the input is a Qobj object and the output is a AerJob object, which can
+later be queried for the Result object. The result will contain a 'unitary'
+data field, which is a 2**n x 2**n complex numpy array representing the
+circuit's unitary matrix.
 
-    compiled_circuit object
-
-and the output is the results object
-
-The simulator is run using
-
-    UnitarySimulator(compiled_circuit).run().
-
-In the qasm, key operations with type 'measure' and 'reset' are dropped.
-
-Internal circuit_object::
-
-    compiled_circuit =
-    {
-     "header": {
-     "number_of_qubits": 2, // int
-     "number_of_clbits": 2, // int
-     "qubit_labels": [["q", 0], ["v", 0]], // list[list[string, int]]
-     "clbit_labels": [["c", 0], ["c", 1]], // list[list[string, int]]
-     }
-     "operations": // list[map]
-        [
-            {
-                "name": , // required -- string
-                "params": , // optional -- list[double]
-                "qubits": , // required -- list[int]
-                "clbits": , //optional -- list[int]
-                "conditional":  // optional -- map
-                    {
-                        "type": , // string
-                        "mask": , // hex string
-                        "val":  , // bhex string
-                    }
-            },
-        ]
-    }
-
-returned results object::
-
-    result =
-            {
-            'data':
-                {
-                'unitary': np.array([[ 0.70710678 +0.00000000e+00j
-                                     0.70710678 -8.65956056e-17j
-                                     0.00000000 +0.00000000e+00j
-                                     0.00000000 +0.00000000e+00j]
-                                   [ 0.00000000 +0.00000000e+00j
-                                     0.00000000 +0.00000000e+00j
-                                     0.70710678 +0.00000000e+00j
-                                     -0.70710678 +8.65956056e-17j]
-                                   [ 0.00000000 +0.00000000e+00j
-                                     0.00000000 +0.00000000e+00j
-                                     0.70710678 +0.00000000e+00j
-                                     0.70710678 -8.65956056e-17j]
-                                   [ 0.70710678 +0.00000000e+00j
-                                    -0.70710678 +8.65956056e-17j
-                                     0.00000000 +0.00000000e+00j
-                                     0.00000000 +0.00000000e+00j]
-                }
-            'state': 'DONE'
-            }
 """
 import logging
 import uuid

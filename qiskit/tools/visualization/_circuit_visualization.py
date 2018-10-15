@@ -462,7 +462,7 @@ class QCircuitImage(object):
         self.header = self.circuit['header']
 
         self.qubit_list = []
-        self.qregs = OrderedDict(self.header['qureg_sizes'])
+        self.qregs = OrderedDict(self.header['qreg_sizes'])
         for qr in self.qregs:
             for i in range(self.qregs[qr]):
                 self.qubit_list.append((qr, i))
@@ -471,8 +471,8 @@ class QCircuitImage(object):
 
         self.cregs = OrderedDict()
         self.clbit_list = []                    
-        if 'clbit_labels' in self.header and 'clreg_sizes' in self.header:
-            self.cregs = OrderedDict(self.header['clreg_sizes'])
+        if 'clbit_labels' in self.header and 'creg_sizes' in self.header:
+            self.cregs = OrderedDict(self.header['creg_sizes'])
             for cr in self.cregs:
                 for i in range(self.cregs[cr]):
                     self.clbit_list.append((cr, i))

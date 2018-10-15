@@ -85,7 +85,7 @@ class Result(object):
 
         # postprocessing to make result data more human readable for the qiskit user
         for _, experiment_result in self.results.items():
-            self._format_result(experiment_result)
+            self._format_exp_result(experiment_result)
 
     def __str__(self):
         """Get the status of the run.
@@ -147,12 +147,19 @@ class Result(object):
         return counts
 
     def _reorder_bitstring(self, bitstring, exp_result_header):
+        """Reorder bitstring in case the experiment could only measure q[i] -> c[i]"""
         # sort the classical bits in order of registers (e.g. q1[1], q1[0], q0[2], q0[1], q0[0])
         # TODO: bug 1 when None exists in the qubit_labels
-        # TODO: but 2 go by place of QuantumRegister in the circuit, not register's name
+        # TODO: bug 2 go by place of QuantumRegister in the circuit, not register's name
         key = lambda index: (exp_result_header['qubit_labels'][index][0], exp_result_header['qubit_labels'][index][1])
         reordered_string = ''.join([bitstring[i] for i in sorted(range(len(bitstring)), key=key)])
         return reordered_string
+
+    def _little_endian(self, bitstring, exp_result_header):
+        """Report the bitstring as little endian (Least Significant Bit on the right)."""
+        print("MAKING LITTLE INDIANS")
+        print('clbit_labels: ', exp_result_header['clbit_labels'])
+        print('bitstring:', bitstring)
 
     def _separate_bitstring(self, bitstring, exp_result_header):
         """Separate a bitstring according to the registers defined in the result header."""
@@ -170,11 +177,13 @@ class Result(object):
             running_index += size
         return ' '.join(substrings)
 
-    def _format_result(self, exp_result):
-        """Format result coming from backend to present to the qiskit user.
+    def _format_exp_result(self, exp_result):
+        """Format a single experiment result coming from backend to present
+        to the qiskit user.
 
-        Histograms are created from "memory" data (if the backend has not already
-        created them), the hexadecimals are expanded to bitstrings, spaces are inserted
+        Histograms "counts" are created from "memory" data (if the backend has
+        not already created them), the hexadecimals are expanded to bitstrings,
+        the order is made little endian (LSB on the right), spaces are inserted
         at register divisions.
 
         Args:
@@ -184,12 +193,14 @@ class Result(object):
         if 'memory' in exp_result.data and not 'counts' in exp_result.data:
             exp_result.data['counts'] = self._histogram(exp_result.data['memory'])
 
-        # for both memory and counts, convert to hex and divide up by registers
+        # for both memory and counts, convert from hex to binary,
+        # make little endian, and insert space between registers
         memory_list = []
         for element in exp_result.data.get('memory', []):
             if element.startswith('0x'):
                 element = self._hex_to_bin(element)
             #element = self._reorder_bitstring(element, exp_result.header)
+            element = self._little_endian(element, exp_result.header)
             element = self._separate_bitstring(element, exp_result.header)
             memory_list.append(element)
         exp_result.data['memory'] = memory_list
@@ -199,6 +210,7 @@ class Result(object):
             if key.startswith('0x'):            
                 key = self._hex_to_bin(key)
             #key = self._reorder_bitstring(key, exp_result.header)
+            key = self._little_endian(key, exp_result.header)            
             key = self._separate_bitstring(key, exp_result.header)
             counts_dict[key] = val
         exp_result.data['counts'] = counts_dict

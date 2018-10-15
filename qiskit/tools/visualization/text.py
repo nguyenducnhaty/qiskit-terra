@@ -407,7 +407,7 @@ class TextDrawing():
         Returns:
             list: A list of lines with the text drawing.
         """
-        noqubits = self.json_circuit['header']['number_of_qubits']
+        noqubits = self.json_circuit['header']['n_qubits']
         layers = self.build_layers()
 
         # TODO compress layers
@@ -595,7 +595,7 @@ class TextDrawing():
         Returns:
             list: A list of indexes affected by the mask.
         """
-        clbit_len = self.json_circuit['header']['number_of_clbits']
+        clbit_len = self.json_circuit['header']['memory_slots']
         bit_mask = [bool(mask & (1 << n)) for n in range(clbit_len)]
         return [i for i, x in enumerate(bit_mask) if x]
 
@@ -620,8 +620,8 @@ class TextDrawing():
             Exception: When the drawing is, for some reason, impossible to be drawn.
         """
         layers = []
-        noqubits = self.json_circuit['header']['number_of_qubits']
-        noclbits = self.json_circuit['header']['number_of_clbits']
+        noqubits = self.json_circuit['header']['n_qubits']
+        noclbits = self.json_circuit['header']['memory_slots']
 
         layers.append(InputWire.fillup_layer(self.wire_names(with_initial_value=True)))
 

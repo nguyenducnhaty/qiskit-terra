@@ -570,7 +570,7 @@ def _reorder_bits(job_data):
             reordered_bits.reverse()
 
             # only keep the clbits specified by circuit, not everything on device
-            num_clbits = circ['header']['number_of_clbits']
+            num_clbits = circ['header']['memory_slots']
             compact_key = reordered_bits[-num_clbits:]
             compact_key = "".join([b if b != 'x' else '0'
                                    for b in compact_key])
