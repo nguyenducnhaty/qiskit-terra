@@ -98,6 +98,9 @@ class QasmSimulator(BaseBackend):
         self._validate(qobj)
         result = launch(qobj, self._configuration['exe'])
         result['job_id'] = job_id
+
+        print(result)
+
         copy_qasm_from_qobj_into_result(qobj, result)
 
         experiment_names = [experiment.header.name for experiment in qobj.experiments]

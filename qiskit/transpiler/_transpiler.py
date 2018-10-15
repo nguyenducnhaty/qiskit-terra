@@ -258,9 +258,6 @@ def _dags_2_qobj_parallel(dag, config=None, basis_gates=None,
     # TODO: place in header or config?
     experiment_config = deepcopy(config or {})
     experiment_config.update({
-        'coupling_map': coupling_map,
-        'basis_gates': basis_gates,
-        'layout': dag.layout,
         'memory_slots': sum(dag.cregs.values()),
         'n_qubits': sum(dag.qregs.values())})
     experiment.config = QobjItem(**experiment_config)
