@@ -171,19 +171,19 @@ measure r[2] -> d[2];
                     {'qubits': [5], 'texparams': ['0.5 \\pi', '0', '\\pi'],
                      'name': 'U', 'params': [1.5707963267948966, 0.0, 3.141592653589793]},
                     {'name': 'CX', 'qubits': [5, 2]},
-                    {'clbits': [2], 'name': 'measure', 'qubits': [2]},
+                    {'memory': [2], 'name': 'measure', 'qubits': [2]},
                     {'qubits': [4], 'texparams': ['0.5 \\pi', '0', '\\pi'], 'name': 'U',
                      'params': [1.5707963267948966, 0.0, 3.141592653589793]},
                     {'name': 'CX', 'qubits': [4, 1]},
-                    {'clbits': [1], 'name': 'measure', 'qubits': [1]},
+                    {'memory': [1], 'name': 'measure', 'qubits': [1]},
                     {'qubits': [3], 'texparams': ['0.5 \\pi', '0', '\\pi'], 'name': 'U',
                      'params': [1.5707963267948966, 0.0, 3.141592653589793]},
                     {'name': 'CX', 'qubits': [3, 0]},
                     {'name': 'barrier', 'qubits': [3, 4, 5]},
-                    {'clbits': [5], 'name': 'measure', 'qubits': [5]},
-                    {'clbits': [4], 'name': 'measure', 'qubits': [4]},
-                    {'clbits': [3], 'name': 'measure', 'qubits': [3]},
-                    {'clbits': [0], 'name': 'measure', 'qubits': [0]}
+                    {'memory': [5], 'name': 'measure', 'qubits': [5]},
+                    {'memory': [4], 'name': 'measure', 'qubits': [4]},
+                    {'memory': [3], 'name': 'measure', 'qubits': [3]},
+                    {'memory': [0], 'name': 'measure', 'qubits': [0]}
                 ],
             'header':
                 {
@@ -215,19 +215,19 @@ measure r[2] -> d[2];
                     {'qubits': [5], 'texparams': ['0', '\\pi'], 'params': [0.0, 3.141592653589793],
                      'name': 'u2'},
                     {'qubits': [5, 2], 'texparams': [], 'params': [], 'name': 'cx'},
-                    {'qubits': [2], 'clbits': [2], 'name': 'measure'},
+                    {'qubits': [2], 'memory': [2], 'name': 'measure'},
                     {'qubits': [4], 'texparams': ['0', '\\pi'], 'params': [0.0, 3.141592653589793],
                      'name': 'u2'},
                     {'qubits': [4, 1], 'texparams': [], 'params': [], 'name': 'cx'},
-                    {'qubits': [1], 'clbits': [1], 'name': 'measure'},
+                    {'qubits': [1], 'memory': [1], 'name': 'measure'},
                     {'qubits': [3], 'texparams': ['0', '\\pi'], 'params': [0.0, 3.141592653589793],
                      'name': 'u2'},
                     {'qubits': [3, 0], 'texparams': [], 'params': [], 'name': 'cx'},
                     {'qubits': [3, 4, 5], 'name': 'barrier'},
-                    {'qubits': [5], 'clbits': [5], 'name': 'measure'},
-                    {'qubits': [4], 'clbits': [4], 'name': 'measure'},
-                    {'qubits': [3], 'clbits': [3], 'name': 'measure'},
-                    {'qubits': [0], 'clbits': [0], 'name': 'measure'}
+                    {'qubits': [5], 'memory': [5], 'name': 'measure'},
+                    {'qubits': [4], 'memory': [4], 'name': 'measure'},
+                    {'qubits': [3], 'memory': [3], 'name': 'measure'},
+                    {'qubits': [0], 'memory': [0], 'name': 'measure'}
                 ],
             'header':
                 {

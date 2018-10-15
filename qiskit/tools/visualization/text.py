@@ -630,7 +630,7 @@ class TextDrawing():
 
             if instruction['name'] == 'measure':
                 layer.set_qubit(instruction['qubits'][0], MeasureFrom())
-                layer.set_clbit(instruction['clbits'][0], MeasureTo())
+                layer.set_clbit(instruction['memory'][0], MeasureTo())
 
             elif instruction['name'] == 'barrier':
                 # barrier
@@ -712,12 +712,12 @@ class TextDrawing():
                                 BoxOnQuWire(label))
                 layer.connect_with("│")
 
-            elif len(instruction['qubits']) == 1 and 'clbits' not in instruction:
+            elif len(instruction['qubits']) == 1 and 'memory' not in instruction:
                 # unitary gate
                 layer.set_qubit(instruction['qubits'][0],
                                 BoxOnQuWire(TextDrawing.label_for_box(instruction)))
 
-            elif len(instruction['qubits']) >= 2 and 'clbits' not in instruction:
+            elif len(instruction['qubits']) >= 2 and 'memory' not in instruction:
                 # multiple qubit gate
                 layer.set_qu_multibox(instruction['qubits'], TextDrawing.label_for_box(instruction))
 

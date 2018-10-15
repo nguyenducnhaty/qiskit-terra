@@ -553,7 +553,7 @@ def _reorder_bits(job_data):
                            ' bits: bits may be out of order')
             return
         # device_qubit -> device_clbit (how it should have been)
-        measure_dict = {op['qubits'][0]: op['clbits'][0]
+        measure_dict = {op['qubits'][0]: op['memory'][0]
                         for op in circ['operations']
                         if op['name'] == 'measure'}
         counts_dict_new = {}

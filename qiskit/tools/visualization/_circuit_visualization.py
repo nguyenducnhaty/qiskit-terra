@@ -761,13 +761,13 @@ class QCircuitImage(object):
                 max_column_width[columns] = max(arg_str_len,
                                                 max_column_width[columns])
             elif op['name'] == "measure":
-                assert len(op['clbits']) == 1 and len(op['qubits']) == 1
+                assert len(op['memory']) == 1 and len(op['qubits']) == 1
                 if 'conditional' in op:
                     raise QISKitError('conditional measures currently not supported.')
                 qname, qindex = self.total_2_register_index(
                     op['qubits'][0], self.qregs)
                 cname, cindex = self.total_2_register_index(
-                    op['clbits'][0], self.cregs)
+                    op['memory'][0], self.cregs)
                 if aliases:
                     newq = aliases[(qname, qindex)]
                     qname = newq[0]
@@ -1269,7 +1269,7 @@ class QCircuitImage(object):
                                 "\\qswap \\qwx[" + str(pos_2 - pos_3) + "]"
 
             elif op["name"] == "measure":
-                assert len(op['clbits']) == 1 and \
+                assert len(op['memory']) == 1 and \
                        len(op['qubits']) == 1 and \
                        'params' not in op, "bad operation record"
 
@@ -1278,7 +1278,7 @@ class QCircuitImage(object):
                 qname, qindex = self.total_2_register_index(
                     op['qubits'][0], self.qregs)
                 cname, cindex = self.total_2_register_index(
-                    op['clbits'][0], self.cregs)
+                    op['memory'][0], self.cregs)
 
                 if aliases:
                     newq = aliases[(qname, qindex)]

@@ -216,8 +216,8 @@ class JsonBackend(UnrollerBackend):
         self.circuit['instructions'].append({
             'name': 'measure',
             'qubits': qubit_indices,
-            'clbits': clbit_indices,
-            'memory': clbit_indices.copy()
+            'memory': clbit_indices
+            # TODO: insert fast 'register' when transpiler supports
         })
         self._add_condition()
 

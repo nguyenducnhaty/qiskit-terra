@@ -128,8 +128,7 @@ class MatplotlibDrawer:
                             labelleft=False, labelright=False)
 
     def parse_circuit(self, circuit):
-        dag_circuit = dagcircuit.DAGCircuit.fromQuantumCircuit(
-            circuit, expand_gates=False)
+        dag_circuit = DAGCircuit.fromQuantumCircuit(circuit, expand_gates=False)
         self._ast = transpiler.transpile(dag_circuit,
                                          basis_gates=self._basis,
                                          format='json')
@@ -140,12 +139,12 @@ class MatplotlibDrawer:
         header = self._ast['header']
         self._creg = []
         for e in header['clbit_labels']:
-             self._creg.append(Register(name=e[0], index=e[1]))            
-        assert len(self._creg) == header['number_of_clbits']
+            self._creg.append(Register(name=e[0], index=e[1]))
+        assert len(self._creg) == header['memory_slots']
         self._qreg = []
         for e in header['qubit_labels']:
             self._qreg.append(Register(name=e[0], index=e[1]))
-        assert len(self._qreg) == header['number_of_qubits']
+        assert len(self._qreg) == header['n_qubits']
 
     @property
     def ast(self):
@@ -237,15 +236,14 @@ class MatplotlibDrawer:
         # add measure symbol
         arc = patches.Arc(xy=(qx, qy - 0.15 * HIG), width=WID * 0.7,
                           height=HIG * 0.7, theta1=0, theta2=180, fill=False,
-                          ec=self._style.lc, linewidth=1.5,
-                          zorder=PORDER_GATE)
+                          ec=self._style.lc, linewidth=1.5, zorder=PORDER_GATE)
         self.ax.add_patch(arc)
         self.ax.plot([qx, qx + 0.35 * WID],
                      [qy - 0.15 * HIG, qy + 0.20 * HIG],
                      color=self._style.lc, linewidth=1.5, zorder=PORDER_GATE)
         # arrow
         self._line(qxy, [cx, cy + 0.35 * WID], lc=self._style.cc,
-                   ls=self._style.cline)
+                         ls=self._style.cline)
         arrowhead = patches.Polygon(((cx - 0.20 * WID, cy + 0.35 * WID),
                                      (cx + 0.20 * WID, cy + 0.35 * WID),
                                      (cx, cy)),
@@ -388,10 +386,10 @@ class MatplotlibDrawer:
                 label = '${}$'.format(reg.name)
             pos = -ii
             self._qreg_dict[ii] = {
-                'y': pos,
-                'label': label,
-                'index': reg.index,
-                'group': reg.name
+                    'y': pos,
+                    'label': label,
+                    'index': reg.index,
+                    'group': reg.name
             }
             self._cond['n_lines'] += 1
         # classical register
@@ -406,20 +404,20 @@ class MatplotlibDrawer:
                 if self._style.bundle:
                     label = '${}$'.format(reg.name)
                     self._creg_dict[ii] = {
-                        'y': pos,
-                        'label': label,
-                        'index': reg.index,
-                        'group': reg.name
+                            'y': pos,
+                            'label': label,
+                            'index': reg.index,
+                            'group': reg.name
                     }
                     if not (not nreg or reg.name != nreg.name):
                         continue
                 else:
                     label = '${}_{{{}}}$'.format(reg.name, reg.index)
                     self._creg_dict[ii] = {
-                        'y': pos,
-                        'label': label,
-                        'index': reg.index,
-                        'group': reg.name
+                            'y': pos,
+                            'label': label,
+                            'index': reg.index,
+                            'group': reg.name
                     }
                 self._cond['n_lines'] += 1
                 idx += 1
@@ -473,10 +471,8 @@ class MatplotlibDrawer:
                              color=self._style.cc,
                              zorder=PORDER_LINE)
                 self.ax.text(0.5, y + .1, str(this_creg['val']), ha='left',
-                             va='bottom',
-                             fontsize=0.8 * self._style.fs,
-                             color=self._style.tc,
-                             clip_on=True,
+                             va='bottom', fontsize=0.8 * self._style.fs,
+                             color=self._style.tc, clip_on=True,
                              zorder=PORDER_TEXT)
             self.ax.text(-0.5, y, this_creg['label'], ha='right', va='center',
                          fontsize=self._style.fs,
@@ -533,8 +529,8 @@ class MatplotlibDrawer:
             else:
                 q_idxs = []
             # get creg index
-            if 'clbits' in op.keys():
-                c_idxs = op['clbits']
+            if 'memory' in op.keys():
+                c_idxs = op['memory']
             else:
                 c_idxs = []
             # find empty space to place gate
@@ -562,7 +558,8 @@ class MatplotlibDrawer:
             # qreg coordinate
             q_xy = [q_anchors[ii].plot_coord(this_anc, gw) for ii in q_idxs]
             # creg corrdinate
-            c_xy = [c_anchors[ii].plot_coord(this_anc, gw) for ii in c_idxs]
+            c_xy = [c_anchors[ii].plot_coord(this_anc, gw) for
+                    ii in c_idxs]
             # bottom and top point of qreg
             qreg_b = min(q_xy, key=lambda xy: xy[1])
             qreg_t = max(q_xy, key=lambda xy: xy[1])
@@ -577,8 +574,7 @@ class MatplotlibDrawer:
                 param = None
             # conditional gate
             if 'conditional' in op.keys():
-                c_xy = [c_anchors[ii].plot_coord(this_anc, gw) for
-                        ii in self._creg_dict]
+                c_xy = [c_anchors[ii].plot_coord(this_anc, gw) for ii in self._creg_dict]
                 # cbit list to consider
                 fmt_c = '{{:0{}b}}'.format(len(c_xy))
                 mask = int(op['conditional']['mask'], 16)
@@ -762,8 +758,7 @@ class MatplotlibDrawer:
         abs_val = abs(val)
         if math.isclose(abs_val, 0.0, abs_tol=1e-100):
             return '0'
-        if math.isclose(math.fmod(abs_val, 1.0),
-                        0.0, abs_tol=tol) and 0.5 < abs_val < 9999.5:
+        if math.isclose(math.fmod(abs_val, 1.0), 0.0, abs_tol=tol) and 0.5 < abs_val < 9999.5:
             return str(int(val))
         if 0.1 <= abs_val < 100.0:
             return '{:.2f}'.format(val)

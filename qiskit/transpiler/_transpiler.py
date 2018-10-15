@@ -251,6 +251,7 @@ def _dags_2_qobj_parallel(dag, config=None, basis_gates=None,
         Qobj: Qobj to be run on the backends
     """
     json_circuit = DagUnroller(dag, JsonBackend(dag.basis)).execute()
+    print(json_circuit)
     # Step 3a: create the Experiment based on json_circuit
     experiment = QobjExperiment.from_dict(json_circuit)
     # Step 3b: populate the Experiment configuration and header
