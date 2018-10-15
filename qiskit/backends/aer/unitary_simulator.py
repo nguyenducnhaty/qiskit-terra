@@ -26,7 +26,7 @@ import time
 
 import numpy as np
 
-from qiskit.result._utils import copy_qasm_from_qobj_into_result
+from qiskit.result._utils import copy_qasm_from_qobj_into_result, result_from_old_style_dict
 from qiskit.backends import BaseBackend
 from qiskit.backends.aer.aerjob import AerJob
 from qiskit import QISKitError
