@@ -78,6 +78,7 @@ def circuit_drawer(circuit,
         scale (float): scale of image to draw (shrink if < 1)
         filename (str): file path to save image to
         style (dict or str): dictionary of style or file name of style file
+            reversebits: changes the endianness if set to True
         output (str): Select the output method to use for drawing the circuit.
             Valid choices are `text`, `latex`, `latex_source`, `mpl`. Note if one
             is not specified it will use latex and if that fails fallback to
