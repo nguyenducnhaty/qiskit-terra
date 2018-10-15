@@ -196,17 +196,9 @@ def _dags_2_qobj(dags, backend_name, config=None, shots=None,
     Returns:
         Qobj: the Qobj to be run on the backends
     """
-    # TODO: the following will be removed from qobj and thus removed here:
-    # `basis_gates`, `coupling_map`
-
     # Step 1: create the Qobj, with empty experiments.
-    # Copy the configuration: the values in `config` have preference
+    # TODO: values in `config` have preference now, but `config` will be removed soon
     qobj_config = deepcopy(config or {})
-    # TODO: "memory_slots" is required by the qobj schema in the top-level
-    # qobj.config, and is user-defined. At the moment is set to the maximum
-    # number of *register* slots for the circuits, in order to have `measure`
-    # behave properly until the transition is over; and each circuit stores
-    # its memory_slots in its configuration.
     qobj_config.update({'shots': shots,
                         'max_credits': max_credits,
                         'memory_slots': 0})
@@ -223,14 +215,10 @@ def _dags_2_qobj(dags, backend_name, config=None, shots=None,
                                                  'config': config,
                                                  'coupling_map': coupling_map})
 
-    # Update the `memory_slots` value.
-    # TODO: remove when `memory_slots` can be provided by the user.
+    # Update the global `memory_slots` and `n_qubits` values.
     qobj.config.memory_slots = max(experiment.config.memory_slots for
                                    experiment in qobj.experiments)
 
-    # Update the `n_qubits` global value.
-    # TODO: num_qubits is not part of the qobj specification, but needed
-    # for the simulator.
     qobj.config.n_qubits = max(experiment.config.n_qubits for
                                experiment in qobj.experiments)
 
@@ -251,8 +239,6 @@ def _dags_2_qobj_parallel(dag, config=None, basis_gates=None,
         Qobj: Qobj to be run on the backends
     """
     json_circuit = DagUnroller(dag, JsonBackend(dag.basis)).execute()
-    from pprint import pprint
-    pprint(json_circuit)
     # Step 3a: create the Experiment based on json_circuit
     experiment = QobjExperiment.from_dict(json_circuit)
     # Step 3b: populate the Experiment configuration and header
