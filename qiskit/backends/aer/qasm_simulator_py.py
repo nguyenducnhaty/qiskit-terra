@@ -318,7 +318,7 @@ class QasmSimulatorPy(BaseBackend):
                     raise SimulatorError(err_msg.format(backend,
                                                         operation.name))
             # Turn classical_state (int) into bit string and pad zero for unused cbits
-            outcome = bin(self._classical_state)[2:].zfill(self._number_of_cbits)
+            outcome = bin(self._classical_state)[2:]
 
             # Return a compact hexadecimal
             outcomes.append(hex(int(outcome, 2)))

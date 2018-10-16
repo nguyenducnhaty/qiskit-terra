@@ -141,6 +141,10 @@ class Result(object):
         """Convert hexadecimal readouts (memory) to binary readouts."""
         return str(bin(int(hexstring, 16)))[2:]
 
+    def _pad_zeros(self, bitstring, memory_slots):
+        """If the bitstring is truncated, pad extra zeros to make its length equal to memory_slots"""
+        return format(int(bitstring, 2), '0{}b'.format(memory_slots))
+
     def _histogram(self, outcomes):
         """Build histogram from measurement outcomes of each shot."""
         counts = dict(Counter(outcomes))
@@ -151,15 +155,20 @@ class Result(object):
         Reorder the bitstring to little endian (Least Significant Bit last, and
         Least Significant Register last).
         """
+        # backend already reports the full memory as little_endian.
+        # reverse the original bitstring to get bitstring[i] to correspond to clbit_label[i]
+        bitstring = bitstring[::-1]
+        
         # registers appearing first in the QuantumCircuit declaration are more significant
         register_significance = lambda r: [i for i, reg in enumerate(creg_sizes) if reg[0] == r][0]
 
         # higher indices are more significant
         index_significance = lambda i: -i
 
-        # sort in ascending order: more significant register first, more significant bit first
+        # order: more significant register first, more significant bit first
         key = lambda position: (register_significance(clbit_labels[position][0]),
                                 index_significance(clbit_labels[position][1]))
+        
         return ''.join([bitstring[i] for i in sorted(range(len(bitstring)), key=key)])
 
     def _separate_bitstring(self, bitstring, creg_sizes):
@@ -171,24 +180,24 @@ class Result(object):
             running_index += size
         return ' '.join(substrings)
 
-    def _format_bitstring(self, bitstring, exp_result_header):
+    def _format_resultstring(self, resultstring, exp_result_header):
         """
         Convert from hex to binary, make little endian, and insert space between registers.
         """
         creg_sizes = exp_result_header.get('creg_sizes')
         clbit_labels = exp_result_header.get('clbit_labels')
+        memory_slots = exp_result_header.get('memory_slots')
 
-        print(bitstring)
-        if bitstring.startswith('0x'):
-            bitstring = self._hex_to_bin(bitstring)
-        print(bitstring)
+        if resultstring.startswith('0x'):
+            resultstring = self._hex_to_bin(resultstring)
+        if memory_slots:
+            resultstring = self._pad_zeros(resultstring, memory_slots)
         if clbit_labels and creg_sizes:
-            bitstring = self._little_endian(bitstring, clbit_labels, creg_sizes)
-        print(bitstring)
+            resultstring = self._little_endian(resultstring, clbit_labels, creg_sizes)
         if creg_sizes:
-            bitstring = self._separate_bitstring(bitstring, creg_sizes)
+            resultstring = self._separate_bitstring(resultstring, creg_sizes)
         
-        return bitstring
+        return resultstring
 
     def _format_exp_result(self, exp_result):
         """Format a single experiment result coming from backend to present
@@ -207,13 +216,13 @@ class Result(object):
 
         memory_list = []
         for element in exp_result.data.get('memory', []):
-            element = self._format_bitstring(element, exp_result.header)
+            element = self._format_resultstring(element, exp_result.header)
             memory_list.append(element)
         exp_result.data['memory'] = memory_list
 
         counts_dict = {}
         for key, val in exp_result.data.get('counts', {}).items():
-            key = self._format_bitstring(key, exp_result.header)
+            key = self._format_resultstring(key, exp_result.header)
             counts_dict[key] = val
         exp_result.data['counts'] = counts_dict
 
@@ -465,7 +474,6 @@ class Result(object):
                 else:
                     raise QISKitError("You have to select a slot when there "
                                       "is more than one available")
-            print(snapshots_dict.keys())
             snapshot_dict = snapshots_dict[slot]
 
             snapshot_types = list(snapshot_dict.keys())

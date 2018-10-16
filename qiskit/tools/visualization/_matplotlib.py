@@ -128,7 +128,8 @@ class MatplotlibDrawer:
                             labelleft=False, labelright=False)
 
     def parse_circuit(self, circuit):
-        dag_circuit = DAGCircuit.fromQuantumCircuit(circuit, expand_gates=False)
+        dag_circuit = dagcircuit.DAGCircuit.fromQuantumCircuit(
+            circuit, expand_gates=False)
         self._ast = transpiler.transpile(dag_circuit,
                                          basis_gates=self._basis,
                                          format='json')
