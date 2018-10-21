@@ -105,7 +105,8 @@ class JsonBackend(UnrollerBackend):
         assert size >= 0, "invalid qreg size"
 
         self._qreg_sizes.append([name, size])
-        for j in range(size):
+        # order qubits from higher to lower index, due to little endian convention
+        for j in reversed(range(size)):
             self._qubit_order.append([name, j])
             self._qubit_order_internal[(name, j)] = self._number_of_qubits + j
         self._number_of_qubits += size
@@ -123,7 +124,8 @@ class JsonBackend(UnrollerBackend):
         assert size >= 0, "invalid creg size"
 
         self._creg_sizes.append([name, size])
-        for j in range(size):
+        # order qubits from higher to lower index, due to little endian convention
+        for j in reversed(range(size)):
             self._cbit_order.append([name, j])
             self._cbit_order_internal[(name, j)] = self._number_of_clbits + j
         self._number_of_clbits += size
