@@ -13,8 +13,8 @@ The input is a AST and a basis set and returns a json memory object::
      "header": {
         "n_qubits": 2, // int
         "memory_slots": 2, // int
-        "qubit_labels": [["q", 0], ["c", 1], null], // list[list[string, int] or null]
-        "clbit_labels": [["c", 0], ["c", 1]], // list[list[string, int]]
+        "qubit_labels": [["q", 1], ["q", 0], null], // list[list[string, int] or null]
+        "clbit_labels": [["c", 1], ["c", 0]], // list[list[string, int]]
         "qreg_sizes": [["q", 1], ["v", 1]], // list[list[string, int]]
         "creg_sizes": [["c", 2]]  // list[list[string, int]]
         ""
@@ -103,16 +103,16 @@ class JsonBackend(UnrollerBackend):
         sz = size of the register
         """
         assert size >= 0, "invalid qreg size"
-
+        self._number_of_qubits += size
         self._qreg_sizes.append([name, size])
+
         # order qubits from higher to lower index, due to little endian convention
         for j in reversed(range(size)):
             self._qubit_order.append([name, j])
-            self._qubit_order_internal[(name, j)] = self._number_of_qubits + j
-        self._number_of_qubits += size
+            self._qubit_order_internal[(name, j)] = self._number_of_qubits - j - 1
         # TODO: avoid rewriting the same data over and over
         self.circuit['header']['n_qubits'] = self._number_of_qubits
-        self.circuit['header']['qreg_sizes'] = self._qreg_sizes        
+        self.circuit['header']['qreg_sizes'] = self._qreg_sizes
         self.circuit['header']['qubit_labels'] = self._qubit_order
 
     def new_creg(self, name, size):
@@ -122,16 +122,16 @@ class JsonBackend(UnrollerBackend):
         sz = size of the register
         """
         assert size >= 0, "invalid creg size"
-
+        self._number_of_clbits += size
         self._creg_sizes.append([name, size])
+
         # order qubits from higher to lower index, due to little endian convention
         for j in reversed(range(size)):
             self._cbit_order.append([name, j])
-            self._cbit_order_internal[(name, j)] = self._number_of_clbits + j
-        self._number_of_clbits += size
+            self._cbit_order_internal[(name, j)] = self._number_of_clbits - j - 1
         # TODO: avoid rewriting the same data over and over
         self.circuit['header']['memory_slots'] = self._number_of_clbits
-        self.circuit['header']['creg_sizes'] = self._creg_sizes        
+        self.circuit['header']['creg_sizes'] = self._creg_sizes
         self.circuit['header']['clbit_labels'] = self._cbit_order
 
     def define_gate(self, name, gatedata):

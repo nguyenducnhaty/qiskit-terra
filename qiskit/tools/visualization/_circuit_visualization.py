@@ -460,23 +460,19 @@ class QCircuitImage(object):
         #################################
         self.header = self.circuit['header']
 
-        self.qubit_list = []
+        self.n_qubits = self.header['n_qubits']
         self.qregs = OrderedDict(self.header['qreg_sizes'])
-        for qr in self.qregs:
-            for i in range(self.qregs[qr]):
-                self.qubit_list.append((qr, i))
-        self.ordered_regs = [(item[0], item[1]) for
-                             item in self.header['qubit_labels']]
+        self.qubit_list = self.header['qubit_labels']
+        self.ordered_regs = [(item[0], item[1]) for item in self.qubit_list]
 
+        self.n_clbits = 0
         self.cregs = OrderedDict()
-        self.clbit_list = []                    
-        if 'clbit_labels' in self.header and 'creg_sizes' in self.header:
+        self.clbit_list = []
+        if 'memory_slots' in self.header:
+            self.n_clbits = self.header['memory_slots']
             self.cregs = OrderedDict(self.header['creg_sizes'])
-            for cr in self.cregs:
-                for i in range(self.cregs[cr]):
-                    self.clbit_list.append((cr, i))
-            self.ordered_regs.extend([(item[0], item[1]) for
-                                      item in self.header['clbit_labels']])
+            self.clbit_list = self.header['clbit_labels']
+            self.ordered_regs.extend([(item[0], item[1]) for item in self.clbit_list])
 
         if self._style.reverse:
             reg_size = []
@@ -498,12 +494,12 @@ class QCircuitImage(object):
 
         self.img_regs = {bit: ind for ind, bit in
                          enumerate(self.ordered_regs)}
-        self.img_width = len(self.img_regs)
+        self.img_width = len(self.ordered_regs)
         self.wire_type = {}
         for key, value in self.ordered_regs:
             self.wire_type[(key, value)] = key in self.cregs.keys()
 
-    def latex(self, aliases=None):
+    def latex(self):
         """Return LaTeX string representation of circuit.
 
         This method uses the LaTeX Qconfig package to create a graphical
@@ -512,8 +508,8 @@ class QCircuitImage(object):
         Returns:
             string: for writing to a LaTeX file.
         """
-        self._initialize_latex_array(aliases)
-        self._build_latex_array(aliases)
+        self._initialize_latex_array()
+        self._build_latex_array()
         header_1 = r"""% \documentclass[preview]{standalone}
 % If the image is too large to fit on this documentclass use
 \documentclass[draft]{beamer}
@@ -565,9 +561,9 @@ class QCircuitImage(object):
         output.close()
         return contents
 
-    def _initialize_latex_array(self, aliases=None):
+    def _initialize_latex_array(self):
         # pylint: disable=unused-argument
-        self.img_depth, self.sum_column_widths = self._get_image_depth(aliases)
+        self.img_depth, self.sum_column_widths = self._get_image_depth()
         self.sum_row_heights = self.img_width
         # choose the most compact row spacing, while not squashing them
         if self.has_box:
@@ -592,12 +588,8 @@ class QCircuitImage(object):
                                     str(self.ordered_regs[i][1]) + "}" + \
                                     ": \\ket{0}}"
 
-    def _get_image_depth(self, aliases=None):
+    def _get_image_depth(self):
         """Get depth information for the circuit.
-
-        Args:
-            aliases (dict): dict mapping the current qubits in the circuit to
-                new qubit names.
 
         Returns:
             int: number of columns in the circuit
@@ -622,11 +614,8 @@ class QCircuitImage(object):
             # useful information for determining column widths and final image scaling
             if op['name'] not in ['measure', 'reset', 'barrier']:
                 qarglist = [self.qubit_list[i] for i in op['qubits']]
-                if aliases is not None:
-                    qarglist = map(lambda x: aliases[x], qarglist)
                 if len(qarglist) == 1:
-                    pos_1 = self.img_regs[(qarglist[0][0],
-                                           qarglist[0][1])]
+                    pos_1 = self.img_regs[(qarglist[0][0], qarglist[0][1])]
                     if 'conditional' in op:
                         mask = int(op['conditional']['mask'], 16)
                         if self._style.reverse:
@@ -763,14 +752,8 @@ class QCircuitImage(object):
                 assert len(op['memory']) == 1 and len(op['qubits']) == 1
                 if 'conditional' in op:
                     raise QISKitError('conditional measures currently not supported.')
-                qname, qindex = self.total_2_register_index(
-                    op['qubits'][0], self.qregs)
-                cname, cindex = self.total_2_register_index(
-                    op['memory'][0], self.cregs)
-                if aliases:
-                    newq = aliases[(qname, qindex)]
-                    qname = newq[0]
-                    qindex = newq[1]
+                qname, qindex = self.total_2_register_index(op['qubits'][0])
+                cname, cindex = self.total_2_register_index(op['memory'][0] + self.n_qubits)
                 pos_1 = self.img_regs[(qname, qindex)]
                 pos_2 = self.img_regs[(cname, cindex)]
                 temp = [pos_1, pos_2]
@@ -791,12 +774,7 @@ class QCircuitImage(object):
             elif op['name'] == "reset":
                 if 'conditional' in op:
                     raise QISKitError('conditional reset currently not supported.')
-                qname, qindex = self.total_2_register_index(
-                    op['qubits'][0], self.qregs)
-                if aliases:
-                    newq = aliases[(qname, qindex)]
-                    qname = newq[0]
-                    qindex = newq[1]
+                qname, qindex = self.total_2_register_index(op['qubits'][0])
                 pos_1 = self.img_regs[(qname, qindex)]
                 if is_occupied[pos_1] is False:
                     is_occupied[pos_1] = True
@@ -848,30 +826,27 @@ class QCircuitImage(object):
 
         return (height, width, self.scale)
 
-    def total_2_register_index(self, index, registers):
-        """Get register name for qubit index.
+    def total_2_register_index(self, index):
+        """Get (name, index) within specific register, from the total ordered registers.
 
-        This function uses the self.qregs ordered dictionary, which looks like
-        {'qr1': 2, 'qr2', 3}
-        to get the register name for the total qubit index. For the above example,
-        index in [0,1] returns 'qr1' and index in [2,4] returns 'qr2'.
+        This function uses the self.ordered_regs list, which looks like
+        [('qr1', 1), ('qr1, 0), ('qr0', 1), ('qr0', 0), ('cr0', 0)]
+        to get the name and index from a total qubit/bit index. For the
+        above example, index in 0 returns ('qr1', 1) and index in 4 returns
+        ('cr1, 0).
 
         Args:
-            index (int): total qubit index among all quantum registers
-            registers (OrderedDict): OrderedDict as described above.
+            index (int): total qubit/clbit index among all quantum/classical registers.
+
         Returns:
-            str: name of register associated with qubit index.
+            str, int: register name and register index associated with total index.
+
         Raises:
-            ValueError: if the qubit index lies outside the range of qubit
-                registers.
+            ValueError: if the index lies outside the range of registers.
         """
-        count = 0
-        for name, size in registers.items():
-            if count + size > index:
-                return name, index - count
-            else:
-                count += size
-        raise ValueError('qubit index lies outside range of qubit registers')
+        if index not in range(len(self.ordered_regs)):
+            ValueError('index lies outside range of qubit and clbit registers')
+        return self.ordered_regs[index]
 
     def _convert_mask(self, mask):
         orig_clbit_list = []
@@ -892,26 +867,11 @@ class QCircuitImage(object):
             converted_mask = (converted_mask << 1) | bit
         return converted_mask
 
-    def _build_latex_array(self, aliases=None):
+    def _build_latex_array(self):
         """Returns an array of strings containing \\LaTeX for this circuit.
-
-        If aliases is not None, aliases contains a dict mapping
-        the current qubits in the circuit to new qubit names.
-        We will deduce the register names and sizes from aliases.
         """
         columns = 1
         is_occupied = [False] * self.img_width
-
-        # Rename qregs if necessary
-        if aliases:
-            qregdata = {}
-            for q in aliases.values():
-                if q[0] not in qregdata:
-                    qregdata[q[0]] = q[1] + 1
-                elif qregdata[q[0]] < q[1] + 1:
-                    qregdata[q[0]] = q[1] + 1
-        else:
-            qregdata = self.qregs
 
         for _, op in enumerate(self.circuit['instructions']):
             if 'conditional' in op:
@@ -926,8 +886,6 @@ class QCircuitImage(object):
             if op['name'] not in ['measure', 'barrier']:
                 nm = op['name']
                 qarglist = [self.qubit_list[i] for i in op['qubits']]
-                if aliases is not None:
-                    qarglist = map(lambda x: aliases[x], qarglist)
                 if len(qarglist) == 1:
                     pos_1 = self.img_regs[(qarglist[0][0],
                                            qarglist[0][1])]
@@ -1274,15 +1232,8 @@ class QCircuitImage(object):
 
                 if 'conditional' in op:
                     assert False, "If controlled measures currently not supported."
-                qname, qindex = self.total_2_register_index(
-                    op['qubits'][0], self.qregs)
-                cname, cindex = self.total_2_register_index(
-                    op['memory'][0], self.cregs)
-
-                if aliases:
-                    newq = aliases[(qname, qindex)]
-                    qname = newq[0]
-                    qindex = newq[1]
+                qname, qindex = self.total_2_register_index(op['qubits'][0])
+                cname, cindex = self.total_2_register_index(op['memory'][0] + self.n_qubits)
 
                 pos_1 = self.img_regs[(qname, qindex)]
                 pos_2 = self.img_regs[(cname, cindex)]
@@ -1318,8 +1269,6 @@ class QCircuitImage(object):
                     qarglist = [self.qubit_list[i] for i in op['qubits']]
                     if self._style.reverse:
                         qarglist = list(reversed(qarglist))
-                    if aliases is not None:
-                        qarglist = map(lambda x: aliases[x], qarglist)
                     start = self.img_regs[(qarglist[0][0],
                                            qarglist[0][1])]
                     span = len(op['qubits']) - 1
