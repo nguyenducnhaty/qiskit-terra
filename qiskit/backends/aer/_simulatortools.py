@@ -128,7 +128,7 @@ def einsum_matmul_index(gate_indices, number_of_qubits):
     # Right indices for the N-qubit input and output tensor
     idx_right = ascii_uppercase[:number_of_qubits]
 
-    # Left ndicies for N-qubit input tensor
+    # Left indices for N-qubit input tensor
     idx_left_in = ascii_lowercase[:number_of_qubits]
 
     # Left indices for the N-qubit output tensor

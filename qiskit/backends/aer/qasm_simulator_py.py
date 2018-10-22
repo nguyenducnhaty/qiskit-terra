@@ -195,7 +195,14 @@ class QasmSimulatorPy(BaseBackend):
         return aer_job
 
     def _run_job(self, job_id, qobj):
-        """Run experiments in qobj"""
+        """Run experiments in qobj
+
+        Args:
+            job_id (str): unique id for the job.
+            qobj (Qobj): job description
+        Returns:
+            Result: Result object        
+        """
         self._validate(qobj)
         result_list = []
         self._shots = qobj.config.shots
