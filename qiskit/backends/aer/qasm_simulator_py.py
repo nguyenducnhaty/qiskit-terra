@@ -141,7 +141,7 @@ class QasmSimulatorPy(BaseBackend):
                 self._statevector[ii] = 0
         # update classical state
         bit = 1 << cbit
-        self._classical_state = (self._classical_state & (~bit)) | ((int(outcome)) << cbit)
+        self._classical_state = (self._classical_state & (~bit)) | (int(outcome) << cbit)
 
     def _add_qasm_reset(self, qubit):
         """Apply the reset to the qubit.
