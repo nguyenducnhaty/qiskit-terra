@@ -273,7 +273,8 @@ class QasmSimulatorPy(BaseBackend):
                   'result': result_list,
                   'status': 'COMPLETED',
                   'success': True,
-                  'time_taken': (end - start)}
+                  'time_taken': (end - start),
+                  'header': qobj.header.as_dict()}
 
         copy_qasm_from_qobj_into_result(qobj, result)
 
