@@ -10,6 +10,7 @@
 The input is a AST and a basis set and returns a json memory object::
 
     {
+      "header": {    
         "n_qubits": 2, // int
         "memory_slots": 2, // int
         "qubit_labels": [["q", 0], ["q", 1], null], // list[list[string, int] or null]
@@ -104,7 +105,6 @@ class JsonBackend(UnrollerBackend):
             self._qubit_order.append([qreg.name, j])
             self._qubit_order_internal[(qreg.name, j)] = self._number_of_qubits + j
         self._number_of_qubits += qreg.size
-        self.circuit['header']['number_of_qubits'] = self._number_of_qubits
         # TODO: avoid rewriting the same data over and over
         self.circuit['header']['n_qubits'] = self._number_of_qubits
         self.circuit['header']['qreg_sizes'] = self._qreg_sizes
