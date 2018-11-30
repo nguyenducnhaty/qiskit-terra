@@ -31,7 +31,9 @@ class TestAerQasmSimulatorPy(QiskitTestCase):
         circuit.config = QobjItem(coupling_map=None,
                                   basis_gates='u1,u2,u3,cx,id',
                                   layout=None,
-                                  seed=self.seed)
+                                  seed=self.seed,
+                                  n_qubits=6,
+                                  memory_slots=6)
         circuit.header.name = 'test'
 
         self.qobj = Qobj(qobj_id='test_sim_single_shot',
@@ -97,11 +99,15 @@ class TestAerQasmSimulatorPy(QiskitTestCase):
         # Customize the experiments and create the qobj.
         ucircuit_true.config = QobjItem(coupling_map=None,
                                         basis_gates='u1,u2,u3,cx,id',
-                                        layout=None)
+                                        layout=None,
+                                        n_qubits=max_qubits,
+                                        memory_slots=max_qubits)
         ucircuit_true.header.name = 'test_if_true'
         ucircuit_false.config = QobjItem(coupling_map=None,
                                          basis_gates='u1,u2,u3,cx,id',
-                                         layout=None)
+                                         layout=None,
+                                         n_qubits=max_qubits,
+                                         memory_slots=max_qubits)
         ucircuit_false.header.name = 'test_if_false'
 
         qobj = Qobj(qobj_id='test_if_qobj',

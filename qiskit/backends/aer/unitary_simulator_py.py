@@ -200,7 +200,8 @@ class UnitarySimulatorPy(BaseBackend):
                                  " to 24 qubit circuits.")
         result = {
             'data': {},
-            'name': experiment.header.name
+            'name': experiment.header.name,
+            'header': experiment.header.as_dict()
         }
 
         # Initialize unitary as rank 2*N tensor

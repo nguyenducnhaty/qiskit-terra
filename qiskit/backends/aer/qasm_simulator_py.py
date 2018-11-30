@@ -350,7 +350,8 @@ class QasmSimulatorPy(BaseBackend):
                 'data': data,
                 'status': 'DONE',
                 'success': True,
-                'time_taken': (end-start)}
+                'time_taken': (end-start),
+                'header': experiment.header.as_dict()}
 
     def _validate(self, qobj):
         for experiment in qobj.experiments:
