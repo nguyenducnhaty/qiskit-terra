@@ -10,7 +10,7 @@
 The input is a AST and a basis set and returns a json memory object::
 
     {
-      "header": {    
+      "header": {
         "n_qubits": 2, // int
         "memory_slots": 2, // int
         "qubit_labels": [["q", 0], ["q", 1], null], // list[list[string, int] or null]

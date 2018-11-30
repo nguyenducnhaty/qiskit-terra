@@ -227,7 +227,7 @@ class QasmSimulatorPy(BaseBackend):
         start = time.time()
 
         for experiment in qobj.experiments:
-            result_list.append(self.run_experiments(experiment))
+            result_list.append(self.run_experiment(experiment))
         end = time.time()
         result = {'backend_name': self.name(),
                   'backend_version': self._configuration.backend_version,
@@ -241,7 +241,7 @@ class QasmSimulatorPy(BaseBackend):
 
         return Result.from_dict(result)
 
-    def run_experiments(self, experiment):
+    def run_experiment(self, experiment):
         """Run an experiment (circuit) and return a single experiment result.
 
         Args:
