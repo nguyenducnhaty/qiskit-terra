@@ -71,8 +71,8 @@ class Result(BaseModel):
             list[complex] list of 2^n_qubits complex amplitudes.
 
             Unitary backend returns a dictionary with key 'unitary' and values being a
-            list[list[complex]] list of 2^n_qubits x 2^n_qubits complex
-            amplitudes.
+            list[list[[re, im]]] list of 2^n_qubits x 2^n_qubits complex
+            amplitudes (each written as a list of real and imaginary parts)
 
             The simulator backends also have an optional 'key' snapshot which returns
             a dict of snapshots specified by the simulator backend.
