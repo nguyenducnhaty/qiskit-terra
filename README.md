@@ -3,6 +3,10 @@
 [![PyPI](https://img.shields.io/pypi/v/qiskit.svg)](https://pypi.python.org/pypi/qiskit-terra)
 [![Build Status](https://travis-ci.org/Qiskit/qiskit-terra.svg?branch=master)](https://travis-ci.org/Qiskit/qiskit-terra)
 [![Build Status IBM Q](https://travis-matrix-badges.herokuapp.com/repos/Qiskit/qiskit-terra/branches/master/8)](https://travis-ci.org/Qiskit/qiskit-terra)
+[![Downloads](https://pepy.tech/badge/qiskit)](https://pepy.tech/project/qiskit)
+[![Downloads](https://pepy.tech/badge/qiskit-terra)](https://pepy.tech/project/qiskit-terra)
+[![Downloads](https://pepy.tech/badge/qiskit-aqua)](https://pepy.tech/project/qiskit-aqua)
+[![Downloads](https://pepy.tech/badge/qiskit-aer)](https://pepy.tech/project/qiskit-aer)
 
 **Qiskit**  is a software development kit  for
 developing quantum computing applications and working with NISQ (Noisy-Intermediate Scale Quantum) computers.
