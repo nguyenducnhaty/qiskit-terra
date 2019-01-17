@@ -6,18 +6,18 @@
 # the LICENSE.txt file in the root directory of this source tree.
 
 """
-Classical bit reference object.
+Classical bit objects.
 """
-from enum import Enum
-
 
 class Clbit(object):
-    """Implement a qubit data type."""
-    
-    class ClbitType(Enum):
-        REGISTER = 0
-        MEMORY = 1
+    """Implement a clbit data type."""
 
-    def __init__(self, index, type):
+    def __init__(self, index):
         self.index = index
-        self.type = type
+
+class MemoryClbit(object):
+    """Slow classical bits in memory."""
+
+
+class RegisterClbit(object):
+    """Fast classical bits in memory (used in feedback)."""

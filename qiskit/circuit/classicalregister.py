@@ -10,7 +10,9 @@ Classical register reference object.
 """
 import itertools
 
+from .clbit import Clbit
 from .register import Register
+from qiskit.exceptions import QiskitError
 
 
 class ClassicalRegister(Register):
@@ -18,8 +20,21 @@ class ClassicalRegister(Register):
 
     # Counter for the number of instances in this class.
     instances_counter = itertools.count()
+
     # Prefix to use for auto naming.
     prefix = 'c'
+
+    def __init__(self, clbits, name=None):
+        """Create a new generic register.
+
+        Args:
+            clbits (list[Clbit]): list of qubits to group under this register
+            name: register string name
+        """
+        if not all(isinstance(clbit, Clbit) for clbit in clbits):
+            raise QiskitError("ClassicalRegister can only group Clbits.")
+
+        super().__init__(clbits, name)
 
     def qasm(self):
         """Return OPENQASM string for this register."""

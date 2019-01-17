@@ -25,25 +25,29 @@ class Register:
     # Prefix to use for auto naming.
     prefix = 'reg'
 
-    def __init__(self, size, name=None):
+    def __init__(self, bits, name=None):
         """Create a new generic register.
+        Args:
+            bits: of either Qubit or Clbit type
+            name: register string name
         """
+        if not bits or not isinstance(bits, list):
+            raise QiskitError("must pass a list of qubits/clbits to construct register.")
 
         if name is None:
             name = '%s%i' % (self.prefix, next(self.instances_counter))
 
         if not isinstance(name, str):
-            raise QiskitError("The circuit name should be a string "
-                              "(or None for autogenerate a name).")
+            raise QiskitError("The register name should be a string "
+                              "(or None to autogenerate a name).")
 
         test = re.compile('[a-z][a-zA-Z0-9_]*')
         if test.match(name) is None:
             raise QiskitError("%s is an invalid OPENQASM register name." % name)
 
         self.name = name
-        self.size = size
-        if size <= 0:
-            raise QiskitError("register size must be positive")
+        self.size = len(bits)
+        self.bits = bits
 
     def __repr__(self):
         """Return the official string representing the register."""
@@ -54,45 +58,30 @@ class Register:
         """Return register size"""
         return self.size
 
-    def check_range(self, j):
-        """Check that j is a valid index into self."""
-        if isinstance(j, int):
-            if j < 0 or j >= self.size:
-                raise QiskitIndexError("register index out of range")
-            elif isinstance(j, slice):
-                if j.start < 0 or j.stop >= self.size or (j.step is not None and
-                                                          j.step <= 0):
-                    raise QiskitIndexError("register index slice out of range")
-
     def __getitem__(self, key):
         """
         Arg:
-            key (int): index of the bit/qubit to be retrieved.
+            key (int or slice): index of the bit to be retrieved.
 
         Returns:
-            tuple[Register, int]: a tuple in the form `(self, key)` if key is int.
-                If key is a slice, return a `list((self,key))`.
+            Qubit or Clbit: if key is int.
+                if key is a slice, return `list`.
 
         Raises:
-            QiskitError: if the `key` is not an integer.
+            QiskitError: if the `key` is not an integer or slice.
             QiskitIndexError: if the `key` is not in the range
                 `(0, self.size)`.
         """
         if not isinstance(key, (int, slice)):
             raise QiskitError("expected integer or slice index into register")
-        self.check_range(key)
-        if isinstance(key, slice):
-            return [(self, ind) for ind in range(*key.indices(len(self)))]
-        else:
-            return self, key
+        return self.bits[key]
 
     def __iter__(self):
         """
         Returns:
-            iterator: an iterator over the bits/qubits of the register, in the
-                form `tuple (Register, int)`.
+            iterator: an iterator over the bits/qubits of the register.
         """
-        return zip([self]*self.size, range(self.size))
+        return iter(self.bits)
 
     def __eq__(self, other):
         """Two Registers are the same if they are of the same type

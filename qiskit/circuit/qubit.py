@@ -6,19 +6,23 @@
 # the LICENSE.txt file in the root directory of this source tree.
 
 """
-Quantum bit reference object.
+Qubit objects.
 """
-from enum import Enum
-
 
 class Qubit(object):
     """Implement a qubit data type."""
-    
-    class QubitType(Enum):
-        PHYSICAL = 0
-        VIRTUAL = 1
-        LOGICAL = 2
 
-    def __init__(self, index, type):
+    def __init__(self, index):
         self.index = index
-        self.type = type
+
+
+class PhysicalQubit(Qubit):
+    """A physical qubit is a circuit qubit bound to a device."""
+
+
+class VirtualQubit(Qubit):
+    """A virtual qubit is a non-fault-tolerant qubit, not tied to circuit."""
+
+
+class LogicalQubit(Qubit):
+    """A logical qubit is a fault-tolerant qubit."""

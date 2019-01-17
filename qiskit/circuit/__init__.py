@@ -7,6 +7,8 @@
 
 """Module for Circuits."""
 from .quantumcircuit import QuantumCircuit
+from .qubit import Qubit
+from .clbit import Clbit
 from .classicalregister import ClassicalRegister
 from .quantumregister import QuantumRegister
 from .gate import Gate
