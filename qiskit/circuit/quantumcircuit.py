@@ -72,6 +72,10 @@ class QuantumCircuit:
         # Data contains a list of instructions in the order they were applied.
         self.data = []
 
+        # Qubits and Clbits (wires) of this circuit.
+        self.qubits = []
+        self.clbits = []
+
         # This is a map of registers bound to this circuit, by name.
         self.qregs = []
         self.cregs = []
