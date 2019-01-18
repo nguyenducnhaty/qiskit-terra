@@ -24,16 +24,14 @@ class ClassicalRegister(Register):
     # Prefix to use for auto naming.
     prefix = 'c'
 
-    def __init__(self, clbits, name=None):
+    def __init__(self, size, name=None):
         """Create a new generic register.
 
         Args:
-            clbits (list[Clbit]): list of qubits to group under this register
+            size (int): a register size to create
             name: register string name
         """
-        if not all(isinstance(clbit, Clbit) for clbit in clbits):
-            raise QiskitError("ClassicalRegister can only group Clbits.")
-
+        clbits = [Clbit()] * size
         super().__init__(clbits, name)
 
     def qasm(self):

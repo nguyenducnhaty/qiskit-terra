@@ -12,12 +12,10 @@ Classical bit objects.
 class Clbit(object):
     """Implement a clbit data type."""
 
-    def __init__(self, index):
-        self.index = index
 
-class MemoryClbit(object):
+class MemoryClbit(Clbit):
     """Slow classical bits in memory."""
 
 
-class RegisterClbit(object):
+class RegisterClbit(Clbit):
     """Fast classical bits in memory (used in feedback)."""

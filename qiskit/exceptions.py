@@ -19,8 +19,3 @@ class QiskitError(Exception):
     def __str__(self):
         """Return the message."""
         return repr(self.message)
-
-
-class QiskitIndexError(QiskitError, IndexError):
-    """Raised when a sequence subscript is out of range."""
-    pass

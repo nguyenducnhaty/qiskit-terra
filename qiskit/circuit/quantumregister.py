@@ -24,16 +24,14 @@ class QuantumRegister(Register):
     # Prefix to use for auto naming.
     prefix = 'q'
 
-    def __init__(self, qubits, name=None):
+    def __init__(self, size, name=None):
         """Create a new generic register.
 
         Args:
-            qubits (list[Qubit]): list of qubits to group under this register
+            size (int): a register size to create
             name: register string name
         """
-        if not all(isinstance(qubit, Qubit) for qubit in qubits):
-            raise QiskitError("QuantumRegister can only group Qubits.")
-
+        qubits = [Qubit()] * size
         super().__init__(qubits, name)
 
     def qasm(self):

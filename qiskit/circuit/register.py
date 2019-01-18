@@ -12,7 +12,7 @@ import re
 import logging
 import itertools
 
-from qiskit.exceptions import QiskitError, QiskitIndexError
+from qiskit.exceptions import QiskitError
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +22,13 @@ class Register:
 
     # Counter for the number of instances in this class.
     instances_counter = itertools.count()
+
     # Prefix to use for auto naming.
     prefix = 'reg'
 
     def __init__(self, bits, name=None):
         """Create a new generic register.
+
         Args:
             bits: of either Qubit or Clbit type
             name: register string name
@@ -69,8 +71,6 @@ class Register:
 
         Raises:
             QiskitError: if the `key` is not an integer or slice.
-            QiskitIndexError: if the `key` is not in the range
-                `(0, self.size)`.
         """
         if not isinstance(key, (int, slice)):
             raise QiskitError("expected integer or slice index into register")

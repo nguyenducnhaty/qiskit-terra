@@ -12,9 +12,6 @@ Qubit objects.
 class Qubit(object):
     """Implement a qubit data type."""
 
-    def __init__(self, index):
-        self.index = index
-
 
 class PhysicalQubit(Qubit):
     """A physical qubit is a circuit qubit bound to a device."""
