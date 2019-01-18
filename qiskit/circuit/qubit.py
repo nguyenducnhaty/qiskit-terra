@@ -8,9 +8,29 @@
 """
 Qubit objects.
 """
+import itertools
+
 
 class Qubit(object):
     """Implement a qubit data type."""
+
+    # Counter for the number of instances in this class.
+    instances_counter = itertools.count()
+
+    def __init__(self, name=None):
+        """Create a new generic register.
+
+        Args:
+            name: qubit string identifier.
+        """
+        if name is None:
+            name = '%i' % next(self.instances_counter)
+
+        self.name = name
+
+    def __repr__(self):
+        """Return the official string representing the qubit."""
+        return "%s('%s')" % (self.__class__.__qualname__, self.name)
 
 
 class PhysicalQubit(Qubit):

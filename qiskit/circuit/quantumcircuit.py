@@ -9,6 +9,7 @@
 Quantum circuit object.
 """
 
+import itertools
 from collections import OrderedDict
 from copy import deepcopy
 import itertools
@@ -19,6 +20,8 @@ from qiskit.qasm import _qasm
 from qiskit.exceptions import QiskitError
 from .quantumregister import QuantumRegister
 from .classicalregister import ClassicalRegister
+from .qubit import Qubit
+from .clbit import Clbit
 
 
 class QuantumCircuit:
@@ -220,16 +223,10 @@ class QuantumCircuit:
 
     def _check_qubit(self, qubit):
         """Raise exception if qubit is not in this circuit or bad format."""
-        if not isinstance(qubit, tuple):
-            raise QiskitError("%s is not a tuple."
-                              "A qubit should be formated as a tuple." % str(qubit))
-        if not len(qubit) == 2:
-            raise QiskitError("%s is not a tuple with two elements, but %i instead" % len(qubit))
-        if not isinstance(qubit[1], int):
-            raise QiskitError("The second element of a tuple defining a qubit should be an int:"
-                              "%s was found instead" % type(qubit[1]).__name__)
-        self._check_qreg(qubit[0])
-        qubit[0].check_range(qubit[1])
+        if not isinstance(qubit, Qubit):
+            raise QiskitError("%s is not a Qubit." % type(qubit[1]).__name__)
+        if not qubit in itertools.chain(*self.qregs):
+            raise QiskitError("Qubit %s not present in circuit." % qubit)
 
     def _check_creg(self, register):
         """Raise exception if r is not in this circuit or not creg."""
