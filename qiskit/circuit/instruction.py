@@ -31,6 +31,8 @@ from qiskit.qasm._node import _node
 from qiskit.exceptions import QiskitError
 from .quantumregister import QuantumRegister
 from .classicalregister import ClassicalRegister
+from .qubit import Qubit
+from .clbit import Clbit
 
 
 class Instruction:
@@ -47,10 +49,10 @@ class Instruction:
         Raises:
             QiskitError: when the register is not in the correct format.
         """
-        if not all((type(i[0]), type(i[1])) == (QuantumRegister, int) for i in qargs):
-            raise QiskitError("qarg not (QuantumRegister, int) tuple")
-        if not all((type(i[0]), type(i[1])) == (ClassicalRegister, int) for i in cargs):
-            raise QiskitError("carg not (ClassicalRegister, int) tuple")
+        if not all(isinstance(qarg, Qubit) for qarg in qargs):
+            raise QiskitError("qarg not a Qubit type")
+        if not all(isinstance(carg, Clbit) for carg in cargs):
+            raise QiskitError("carg not a Clbit type")
         self.name = name
         self.params = []  # a list of gate params stored as sympy objects
         for single_param in params:

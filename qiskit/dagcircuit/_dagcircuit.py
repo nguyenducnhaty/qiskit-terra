@@ -50,10 +50,10 @@ class DAGCircuit:
         # Set of wires (Register,idx) in the dag
         self.wires = []
 
-        # Map from wire (Register,idx) to input nodes of the graph
+        # Map from wire (Qubit/Clbit) to input nodes of the graph
         self.input_map = OrderedDict()
 
-        # Map from wire (Register,idx) to output nodes of the graph
+        # Map from wire (Qubit/Clbit) to output nodes of the graph
         self.output_map = OrderedDict()
 
         # Running count of the total number of nodes
@@ -159,7 +159,7 @@ class DAGCircuit:
             raise DAGCircuitError("duplicate register %s" % qreg.name)
         self.qregs[qreg.name] = qreg
         for j in range(qreg.size):
-            self._add_wire((qreg, j))
+            self._add_wire(qreg[j])
 
     def add_creg(self, creg):
         """Add all wires in a classical register."""
@@ -169,13 +169,13 @@ class DAGCircuit:
             raise DAGCircuitError("duplicate register %s" % creg.name)
         self.cregs[creg.name] = creg
         for j in range(creg.size):
-            self._add_wire((creg, j))
+            self._add_wire(creg[j])
 
     def _add_wire(self, wire):
         """Add a qubit or bit to the circuit.
 
         Args:
-            wire (tuple): (Register,int) containing a register instance and index
+            wire (Qubit/Clbit): a circuit wire
             This adds a pair of in and out nodes connected by an edge.
 
         Raises:
@@ -192,11 +192,11 @@ class DAGCircuit:
             self.multi_graph.add_edge(in_node, out_node)
             self.multi_graph.node[in_node]["type"] = "in"
             self.multi_graph.node[out_node]["type"] = "out"
-            self.multi_graph.node[in_node]["name"] = "%s[%s]" % (wire[0].name, wire[1])
-            self.multi_graph.node[out_node]["name"] = "%s[%s]" % (wire[0].name, wire[1])
+            self.multi_graph.node[in_node]["name"] = "%s" % wire.name
+            self.multi_graph.node[out_node]["name"] = "%s" % wire.name
             self.multi_graph.node[in_node]["wire"] = wire
             self.multi_graph.node[out_node]["wire"] = wire
-            self.multi_graph.adj[in_node][out_node][0]["name"] = "%s[%s]" % (wire[0].name, wire[1])
+            self.multi_graph.adj[in_node][out_node][0]["name"] = "%s" % wire.name
             self.multi_graph.adj[in_node][out_node][0]["wire"] = wire
         else:
             raise DAGCircuitError("duplicate wire %s" % (wire,))
@@ -251,8 +251,8 @@ class DAGCircuit:
 
         Args:
             op (Instruction): a quantum operation
-            qargs (list[tuple]): qubits that op will be applied to
-            cargs (list[tuple]): cbits that op will be applied to
+            qargs (list[Qubit]): qubits that op will be applied to
+            cargs (list[Clbit]): cbits that op will be applied to
         Raises:
             DAGCircuitError: If the check fails.
         """
@@ -296,16 +296,16 @@ class DAGCircuit:
         For each element of args, check that amap contains it.
 
         Args:
-            args (list): (register,idx) tuples
-            amap (dict): a dictionary keyed on (register,idx) tuples
+            args (list[Qubit] or list[Clbit]): bits to check
+            amap (dict): a dictionary keyed on Qubit/Clbit objects
 
         Raises:
-            DAGCircuitError: if a qubit is not contained in amap
+            DAGCircuitError: if a qubit/clbit is not contained in amap
         """
         # Check for each wire
         for wire in args:
             if wire not in amap:
-                raise DAGCircuitError("(qu)bit %s[%d] not found" % (wire[0].name, wire[1]))
+                raise DAGCircuitError("qubit/clbit %s not found" % wire)
 
     def _bits_in_condition(self, cond):
         """Return a list of bits in the given condition.
@@ -318,7 +318,7 @@ class DAGCircuit:
         """
         all_bits = []
         if cond is not None:
-            all_bits.extend([(cond[0], j) for j in range(self.cregs[cond[0].name].size)])
+            all_bits.extend([(cond[0][j]) for j in range(self.cregs[cond[0].name].size)])
         return all_bits
 
     def _add_op_node(self, op, qargs, cargs, condition=None):
@@ -350,8 +350,8 @@ class DAGCircuit:
 
         Args:
             op (Instruction): the operation associated with the DAG node
-            qargs (list[tuple]): qubits that op will be applied to
-            cargs (list[tuple]): cbits that op will be applied to
+            qargs (list[Qubit]): qubits that op will be applied to
+            cargs (list[Clbit]): cbits that op will be applied to
             condition (tuple or None): optional condition (ClassicalRegister, int)
 
         Raises:
@@ -379,10 +379,10 @@ class DAGCircuit:
                 raise DAGCircuitError("output node has multiple in-edges")
 
             self.multi_graph.add_edge(ie[0], self.node_counter,
-                                      name="%s[%s]" % (q[0].name, q[1]), wire=q)
+                                      name="%s" % q, wire=q)
             self.multi_graph.remove_edge(ie[0], self.output_map[q])
             self.multi_graph.add_edge(self.node_counter, self.output_map[q],
-                                      name="%s[%s]" % (q[0].name, q[1]), wire=q)
+                                      name="%s" % q, wire=q)
 
     def apply_operation_front(self, op, qargs=None, cargs=None, condition=None):
         """Apply an operation to the input of the circuit.
@@ -390,8 +390,8 @@ class DAGCircuit:
 
         Args:
             op (Instruction): the operation associated with the DAG node
-            qargs (list[tuple]): qubits that op will be applied to
-            cargs (list[tuple]): cbits that op will be applied to
+            qargs (list[Qubit]): qubits that op will be applied to
+            cargs (list[Clbit]): cbits that op will be applied to
             condition (tuple or None): optional condition (ClassicalRegister, value)
 
         Raises:
@@ -417,10 +417,10 @@ class DAGCircuit:
             if len(ie) != 1:
                 raise DAGCircuitError("input node has multiple out-edges")
             self.multi_graph.add_edge(self.node_counter, ie[0],
-                                      name="%s[%s]" % (q[0].name, q[1]), wire=q)
+                                      name="%s" % q, wire=q)
             self.multi_graph.remove_edge(self.input_map[q], ie[0])
             self.multi_graph.add_edge(self.input_map[q], self.node_counter,
-                                      name="%s[%s]" % (q[0].name, q[1]), wire=q)
+                                      name="%s" % q, wire=q)
 
     def _make_union_basis(self, input_circuit):
         """Return a new basis map.

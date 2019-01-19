@@ -31,7 +31,7 @@ class QuantumRegister(Register):
             size (int): a register size to create
             name: register string name
         """
-        qubits = [Qubit()] * size
+        qubits = [Qubit() for _ in range(size)]
         super().__init__(qubits, name)
 
     def qasm(self):

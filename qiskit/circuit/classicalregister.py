@@ -31,7 +31,7 @@ class ClassicalRegister(Register):
             size (int): a register size to create
             name: register string name
         """
-        clbits = [Clbit()] * size
+        clbits = [Clbit() for _ in range(size)]
         super().__init__(clbits, name)
 
     def qasm(self):
