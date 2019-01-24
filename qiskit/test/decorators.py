@@ -46,27 +46,6 @@ def requires_aer_provider(test_item):
     return unittest.skipIf(not is_aer_provider_available(), reason)(test_item)
 
 
-def slow_test(func):
-    """Decorator that signals that the test takes minutes to run.
-
-    Args:
-        func (callable): test function to be decorated.
-
-    Returns:
-        callable: the decorated function.
-    """
-
-    @functools.wraps(func)
-    def _wrapper(*args, **kwargs):
-        skip_slow = not TEST_OPTIONS['run_slow']
-        if skip_slow:
-            raise unittest.SkipTest('Skipping slow tests')
-
-        return func(*args, **kwargs)
-
-    return _wrapper
-
-
 def _get_credentials(test_object, test_options):
     """Finds the credentials for a specific test and options.
 

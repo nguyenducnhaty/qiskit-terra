@@ -282,6 +282,9 @@ Removed
 - The ``transpile()`` function kwarg ``format`` has been removed and will
   always return a circuit object. Instead you'll need to manually convert the
   output with the functions provided in ``qiskit.converters``.
+- Removed the ``@slow_test`` decorator since all device run tests are moved
+  out of Terra (#1718).
+
 
 `0.6.0`_ - 2018-10-04
 =====================
