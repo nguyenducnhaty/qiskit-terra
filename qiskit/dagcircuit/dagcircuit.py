@@ -690,6 +690,9 @@ class DAGCircuit:
 
         return full_pred_map, full_succ_map
 
+    def __hash__(self):
+        return hash(self.multi_graph)
+
     def __eq__(self, other):
         raise NotImplementedError()
 
