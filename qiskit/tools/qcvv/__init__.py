@@ -8,7 +8,7 @@
 
 import warnings
 
-print()
+print("")
 
 warnings.warn('The qiskit.tools.qcvv package is deprecated. '
               'Please use qiskit-ignis available on PIP for similar '
