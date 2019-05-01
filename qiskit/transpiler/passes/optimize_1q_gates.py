@@ -41,7 +41,6 @@ class Optimize1qGates(TransformationPass):
 
     def __init__(self):
         super().__init__()
-        self.requires.append(Unroller(["u1", "u2", "u3", "cx", "id"]))
 
     def run(self, dag):
         """Return a new circuit that has been optimized."""

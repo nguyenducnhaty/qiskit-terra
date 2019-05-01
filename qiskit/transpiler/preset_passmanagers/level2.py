@@ -22,6 +22,7 @@ from qiskit.transpiler.passes import CXDirection
 from qiskit.transpiler.passes import DenseLayout
 from qiskit.transpiler.passes import NoiseAdaptiveLayout
 from qiskit.transpiler.passes import LegacySwap
+from qiskit.transpiler.passes import BarrierBeforeFinalMeasurements
 from qiskit.transpiler.passes import FullAncillaAllocation
 from qiskit.transpiler.passes import EnlargeWithAncilla
 from qiskit.transpiler.passes import FixedPoint

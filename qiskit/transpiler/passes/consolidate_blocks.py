@@ -37,7 +37,6 @@ class ConsolidateBlocks(TransformationPass):
     """
     def __init__(self):
         super().__init__()
-        self.requires.append(Unroller(["u1", "u2", "u3", "cx", "id"]))
 
     def run(self, dag):
         """iterate over each block and replace it with an equivalent Unitary
