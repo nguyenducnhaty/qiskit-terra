@@ -182,11 +182,10 @@ class TestParameters(QiskitTestCase):
         qc = QuantumCircuit(4)
         depth = 4
         theta = ParameterVector('θ', length=len(qc.qubits) * depth * 2)
-        theta_iter = iter(theta)
         for _ in range(depth):
             for q in qc.qubits:
-                qc.ry(next(theta_iter), q)
-                qc.rz(next(theta_iter), q)
+                qc.ry(next(theta), q)
+                qc.rz(next(theta), q)
             for i, q in enumerate(qc.qubits[:-1]):
                 qc.cx(qc.qubits[i], qc.qubits[i+1])
             qc.barrier()
@@ -202,11 +201,10 @@ class TestParameters(QiskitTestCase):
         qc = QuantumCircuit(4)
         depth = 4
         theta = ParameterVector('θ', length=len(qc.qubits)*depth*2)
-        theta_iter = iter(theta)
         for _ in range(depth):
             for q in qc.qubits:
-                qc.ry(next(theta_iter), q)
-                qc.rz(next(theta_iter), q)
+                qc.ry(next(theta), q)
+                qc.rz(next(theta), q)
             for i, q in enumerate(qc.qubits[:-1]):
                 qc.cx(qc.qubits[i], qc.qubits[i+1])
             qc.barrier()
@@ -221,10 +219,9 @@ class TestParameters(QiskitTestCase):
         depth = 4
         ryrz = QuantumCircuit(qubits, name='ryrz')
         theta = ParameterVector('θ0', length=len(ryrz.qubits) * 2)
-        theta_iter = iter(theta)
         for q in ryrz.qubits:
-            ryrz.ry(next(theta_iter), q)
-            ryrz.rz(next(theta_iter), q)
+            ryrz.ry(next(theta), q)
+            ryrz.rz(next(theta), q)
 
         cxs = QuantumCircuit(qubits-1, name='cxs')
         for i, _ in enumerate(cxs.qubits[:-1:2]):

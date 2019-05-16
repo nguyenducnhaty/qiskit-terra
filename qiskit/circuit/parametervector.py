@@ -23,6 +23,7 @@ class ParameterVector():
     def __init__(self, name, length=0):
         self._name = name
         self._params = []
+        self._current = -1
         for i in range(length):
             self._params += [Parameter("{0}[{1}]".format(self._name, i))]
 
@@ -41,6 +42,13 @@ class ParameterVector():
 
     def __iter__(self):
         return iter(self.params)
+
+    def __next__(self):
+        self._current += 1
+        if self._current >= len(self.params):
+            raise StopIteration
+        else:
+            return self.params[self._current]
 
     def __len__(self):
         return len(self.params)
