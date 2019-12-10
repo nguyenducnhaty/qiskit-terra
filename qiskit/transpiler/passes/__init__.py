@@ -51,9 +51,17 @@ Basis Change
 .. autosummary::
    :toctree: ../stubs/
 
+<<<<<<< HEAD
    Unroller
    Unroll3qOrMore
    Decompose
+=======
+   Optimize1qGates
+   CXCancellation
+   CommutationAnalysis
+   CommutativeCancellation
+   SimplifyU3
+>>>>>>> add simplify_u3 pass and reduce complexity of optimize1q pass
 
 Optimizations
 =============
@@ -133,6 +141,8 @@ from .optimization import OptimizeSwapBeforeMeasure
 from .optimization import RemoveResetInZeroState
 from .optimization import RemoveDiagonalGatesBeforeMeasure
 from .optimization import CrosstalkAdaptiveSchedule
+from .optimization import SimplifyU3
+from .optimization import Collapse1qChains
 
 # circuit analysis
 from .analysis import ResourceEstimation
