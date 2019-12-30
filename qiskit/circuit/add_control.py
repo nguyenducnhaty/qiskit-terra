@@ -18,7 +18,7 @@ from qiskit import QiskitError
 from qiskit.extensions import UnitaryGate
 
 
-def add_control(operation, num_ctrl_qubits, label):
+def add_control(operation, num_ctrl_qubits, label=None):
     """Add num_ctrl_qubits controls to operation
 
     Args:
