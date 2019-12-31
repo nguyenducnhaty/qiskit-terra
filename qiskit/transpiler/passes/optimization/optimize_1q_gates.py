@@ -28,7 +28,7 @@ from qiskit.circuit.gate import Gate
 from qiskit.transpiler.basepasses import TransformationPass
 from qiskit.quantum_info.operators import Quaternion
 
-_CHOP_THRESHOLD = 1e-15
+DEFAULT_ATOL = 1e-15
 
 
 class Optimize1qGates(TransformationPass):
@@ -218,7 +218,7 @@ class Optimize1qGates(TransformationPass):
         abs_inner = abs(quaternion_zyz.data.dot(quaternion_yzy.data))
         if not np.allclose(abs_inner, 1, eps):
             raise TranspilerError('YZY and ZYZ angles do not give same rotation matrix.')
-        out_angles = tuple(0 if np.abs(angle) < _CHOP_THRESHOLD else angle
+        out_angles = tuple(0 if np.abs(angle) < DEFAULT_ATOL else angle
                            for angle in out_angles)
         return out_angles
 
