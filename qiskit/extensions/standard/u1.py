@@ -23,7 +23,19 @@ from qiskit.extensions.standard.u3 import U3Gate
 
 
 class U1Gate(Gate):
-    """Diagonal single-qubit gate."""
+    """Diagonal single-qubit gate.
+
+    .. math::
+
+    U1(phi, lam) = [[1, 0],         = U3(0,0,lam)
+                    [0, e^i.lam]]
+
+    Can be implemented virtually in software (zero pulses).
+
+    .. math::
+
+    U1(lam) = e^(i.lam/2).RZ(lam)
+    """
 
     def __init__(self, theta, label=None):
         """Create new diagonal single-qubit gate."""
@@ -40,7 +52,12 @@ class U1Gate(Gate):
         self.definition = definition
 
     def inverse(self):
-        """Invert this gate."""
+        """Invert this gate.
+
+        .. math::
+
+        U1(lam)^dagger = U1(-lam)
+        """
         return U1Gate(-self.params[0])
 
     def to_matrix(self):

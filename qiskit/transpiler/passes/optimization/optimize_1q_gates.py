@@ -12,8 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Optimize chains of single-qubit u1, u2, u3 gates by combining them
-into a single gate.
+"""Combine chains of single qubit gates into a single U3 gate.
 """
 
 from itertools import groupby
@@ -31,9 +30,14 @@ from qiskit.quantum_info.operators import Quaternion
 DEFAULT_ATOL = 1e-15
 
 
-class Optimize1qGates(TransformationPass):
-    """Optimize chains of single-qubit u1, u2, u3 gates by combining
-    them into a single gate.
+class Consolidate1qGates(TransformationPass):
+    """Combine chains of single-qubit gates into a single U3 gate.
+
+    A single gate (chain of one) will also be converted.
+
+    This pass can make some gates temporarily less optimized, for example
+    by converting a U1 gate into a U3. A follow-up invocation of SimplifyU3
+    can correct for this.
     """
 
     def run(self, dag):

@@ -27,7 +27,19 @@ class U2Gate(Gate):
     """One-pulse single-qubit gate."""
 
     def __init__(self, phi, lam, label=None):
-        """Create new one-pulse single-qubit gate."""
+        """Single qubit rotation about the X+Z axis.
+
+        .. math::
+
+        U2(phi, lam) = 1/sqrt(2) [[1, e^-i.lam],            = U3(pi/2, phi, lam)
+                                  [e^i.phi, e^i.(phi+lam)]]
+
+        Implemented using one X90 pulse on IBM Q systems:
+
+        .. math::
+
+        U2(phi, lam) = RZ(phi+pi/2).RX(90).RZ(lam-pi/2)
+        """
         super().__init__("u2", 1, [phi, lam], label=label)
 
     def _define(self):
@@ -41,7 +53,9 @@ class U2Gate(Gate):
     def inverse(self):
         """Invert this gate.
 
-        u2(phi,lamb)^dagger = u2(-lamb-pi,-phi+pi)
+        .. math::
+
+        U2(phi, lam)^dagger = U2(-lam-pi, -phi+pi)
         """
         return U2Gate(-self.params[1] - pi, -self.params[0] + pi)
 

@@ -25,13 +25,27 @@ class U3Gate(Gate):
     """Two-pulse single-qubit gate."""
 
     def __init__(self, theta, phi, lam, label=None):
-        """Create new two-pulse single qubit gate."""
+        """Generic single-qubit rotation gate.
+
+        .. math::
+
+        U2(phi, lam) = [[cos(theta/2), (e^-i.lam).sin(theta/2)],
+                        [(e^i.phi).sin(theta/2), e^i(phi+lam)cos(theta/2)]]
+
+        Implemented using two X90 pulse on IBM Q systems:
+
+        .. math::
+
+            U3(theta, phi, lam) = RZ(phi+pi).RX(90).RZ(theta+pi).RX(90).RZ(lam)
+        """
         super().__init__("u3", 1, [theta, phi, lam], label=label)
 
     def inverse(self):
         """Invert this gate.
 
-        u3(theta, phi, lamb)^dagger = u3(-theta, -lam, -phi)
+        .. math::
+        
+        U3(theta, phi, lam)^dagger = U3(-theta, -lam, -phi)
         """
         return U3Gate(-self.params[0], -self.params[2], -self.params[1])
 
