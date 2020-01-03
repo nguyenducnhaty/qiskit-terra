@@ -51,17 +51,9 @@ Basis Change
 .. autosummary::
    :toctree: ../stubs/
 
-<<<<<<< HEAD
    Unroller
    Unroll3qOrMore
    Decompose
-=======
-   Optimize1qGates
-   CXCancellation
-   CommutationAnalysis
-   CommutativeCancellation
-   SimplifyU3
->>>>>>> add simplify_u3 pass and reduce complexity of optimize1q pass
 
 Optimizations
 =============
@@ -70,6 +62,8 @@ Optimizations
    :toctree: ../stubs/
 
    Optimize1qGates
+   Collapse1qChains
+   SimplifyU3
    Collect2qBlocks
    ConsolidateBlocks
    CXCancellation
