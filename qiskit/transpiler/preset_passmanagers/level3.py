@@ -36,7 +36,8 @@ from qiskit.transpiler.passes import EnlargeWithAncilla
 from qiskit.transpiler.passes import FixedPoint
 from qiskit.transpiler.passes import Depth
 from qiskit.transpiler.passes import RemoveResetInZeroState
-from qiskit.transpiler.passes import Optimize1qGates
+from qiskit.transpiler.passes import Collapse1qChains
+from qiskit.transpiler.passes import SimplifyU3
 from qiskit.transpiler.passes import CommutativeCancellation
 from qiskit.transpiler.passes import OptimizeSwapBeforeMeasure
 from qiskit.transpiler.passes import RemoveDiagonalGatesBeforeMeasure
@@ -114,11 +115,22 @@ def level_3_pass_manager(transpile_config):
     def _opt_control(property_set):
         return not property_set['depth_fixed_point']
 
-    _opt = [RemoveResetInZeroState(),
-            Collect2qBlocks(), ConsolidateBlocks(),
-            Unroller(basis_gates),  # unroll unitaries
-            Optimize1qGates(), CommutativeCancellation(),
-            OptimizeSwapBeforeMeasure(), RemoveDiagonalGatesBeforeMeasure()]
+    # TODO: temporary hack to make sure user basis are respected. eventually, all optimizations
+    # should be done in terms of u3 and the result re-written in the requested basis.
+    if 'u1' in basis_gates and 'u2' in basis_gates:
+        _opt = [Collect2qBlocks(), ConsolidateBlocks(),
+                Unroller(basis_gates),  # unroll unitaries
+                Collapse1qChains(), SimplifyU3(), CommutativeCancellation()]
+    elif 'u3' in basis_gates:
+        _opt = [Collect2qBlocks(), ConsolidateBlocks(),
+                Unroller(basis_gates),  # unroll unitaries
+                Collapse1qChains(), CommutativeCancellation()]
+    else:
+        _opt = [Collect2qBlocks(), ConsolidateBlocks(),
+                Unroller(basis_gates),  # unroll unitaries
+                CommutativeCancellation()]
+
+    _opt2 = [RemoveResetInZeroState(), OptimizeSwapBeforeMeasure(), RemoveDiagonalGatesBeforeMeasure()]
 
     if coupling_map and not coupling_map.is_symmetric:
         _opt.append(CXDirection(coupling_map))
@@ -136,5 +148,6 @@ def level_3_pass_manager(transpile_config):
             pm3.append(_direction_check)
             pm3.append(_direction, condition=_direction_condition)
     pm3.append(_depth_check + _opt, do_while=_opt_control)
+    pm3.append(_opt2)
 
     return pm3
