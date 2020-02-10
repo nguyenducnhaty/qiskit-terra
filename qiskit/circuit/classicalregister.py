@@ -19,7 +19,7 @@ import itertools
 
 from qiskit.circuit.exceptions import CircuitError
 from .register import Register
-from .bit import Bit
+from .bit import Bit, ReglessBit
 
 
 class Clbit(Bit):
@@ -41,6 +41,10 @@ class Clbit(Bit):
         else:
             raise CircuitError('Clbit needs a ClassicalRegister and %s was provided' %
                                type(register).__name__)
+
+
+class ReglessClbit(ReglessBit):
+    pass
 
 
 class ClassicalRegister(Register):

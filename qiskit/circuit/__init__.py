@@ -56,8 +56,8 @@ Parametric Quantum Circuits
 
 """
 from .quantumcircuit import QuantumCircuit
-from .classicalregister import ClassicalRegister, Clbit
-from .quantumregister import QuantumRegister, Qubit
+from .classicalregister import ClassicalRegister, Clbit, ReglessClbit
+from .quantumregister import QuantumRegister, Qubit, ReglessQubit
 from .gate import Gate
 from .controlledgate import ControlledGate
 from .instruction import Instruction

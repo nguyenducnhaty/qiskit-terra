@@ -51,3 +51,16 @@ class Bit:
         if isinstance(other, Bit):
             return other.index == self.index and other.register == self.register
         return False
+
+
+class ReglessBit:
+    """Implement a generic bit."""
+
+    def __init__(self):
+        """Create a new generic bit.
+        """
+        pass
+
+    def __repr__(self):
+        """Return the official string representing the bit."""
+        return "%s(%s)" % (self.__class__.__name__, hex(id(self)))

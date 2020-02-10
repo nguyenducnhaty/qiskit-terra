@@ -32,19 +32,9 @@ class Register:
     prefix = 'reg'
     bit_type = None
 
-    def __init__(self, size, name=None):
+    def __init__(self, size=None, name=None, bits=None):
         """Create a new generic register.
         """
-
-        # validate (or cast) size
-        try:
-            size = int(size)
-        except Exception:
-            raise CircuitError("Register size must be castable to an int (%s '%s' was provided)"
-                               % (type(size).__name__, size))
-        if size <= 0:
-            raise CircuitError("Register size must be positive (%s '%s' was provided)"
-                               % (type(size).__name__, size))
 
         # validate (or cast) name
         if name is None:
@@ -58,6 +48,26 @@ class Register:
             name_format = re.compile('[a-z][a-zA-Z0-9_]*')
             if name_format.match(name) is None:
                 raise CircuitError("%s is an invalid OPENQASM register name." % name)
+
+
+        # validate (or cast) size
+        if bits is not None:
+            if len(set(type(bit) for bit in bits)) != 1:
+                raise RuntimeError('Inconsistent bit types: %s' % set(type(bit) for bit in bits))
+            self._bits = bits
+            self.name = name
+            self.size = len(self._bits)
+            return
+
+        try:
+            size = int(size)
+        except Exception:
+            raise CircuitError("Register size must be castable to an int (%s '%s' was provided)"
+                               % (type(size).__name__, size))
+        if size <= 0:
+            raise CircuitError("Register size must be positive (%s '%s' was provided)"
+                               % (type(size).__name__, size))
+
 
         self.name = name
         self.size = size
@@ -112,6 +122,7 @@ class Register:
         Returns:
             bool: `self` and `other` are equal.
         """
+        return len(self) == len(other) and type(self) is type(other) and all(i==j for i,j in zip(self, other))
         res = False
         if type(self) is type(other) and \
                 self.name == other.name and \

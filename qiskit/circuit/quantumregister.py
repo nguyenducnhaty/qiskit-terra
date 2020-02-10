@@ -19,7 +19,7 @@ import itertools
 
 from qiskit.circuit.exceptions import CircuitError
 from .register import Register
-from .bit import Bit
+from .bit import Bit, ReglessBit
 
 
 class Qubit(Bit):
@@ -42,6 +42,9 @@ class Qubit(Bit):
             raise CircuitError('Qubit needs a QuantumRegister and %s was provided' %
                                type(register).__name__)
 
+class ReglessQubit(ReglessBit):
+    """Implement a quantum bit."""
+    pass
 
 class QuantumRegister(Register):
     """Implement a quantum register."""
