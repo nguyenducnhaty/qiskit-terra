@@ -599,7 +599,7 @@ class TextDrawing():
         Returns:
             List: The list of wire names.
         """
-        if with_initial_value:
+        if with_initial_value and False:
             initial_qubit_value = '|0>'
             initial_clbit_value = '0 '
         else:
@@ -608,9 +608,9 @@ class TextDrawing():
 
         qubit_labels = []
         if self.layout is None:
-            for bit in self.qubits:
-                label = '{name}_{index}: ' + initial_qubit_value
-                qubit_labels.append(label.format(name=repr(bit),#bit.register.name,
+            for idx, bit in enumerate(self.qubits):
+                label = '{name}{index}: ' + initial_qubit_value
+                qubit_labels.append(label.format(name=idx,#bit.register.name,
                                                  index='',#bit.index,
                                                  physical=''))
             # for bit in self.qregs:
@@ -628,9 +628,9 @@ class TextDrawing():
         # for bit in self.cregs:
         #     label = '{name}_{index}: ' + initial_clbit_value
         #     clbit_labels.append(label.format(name=bit.register.name, index=bit.index))
-        for bit in self.clbits:
-            label = '{name}_{index}: ' + initial_clbit_value
-            clbit_labels.append(label.format(name=repr(bit),index=''))#bit.register.name, index=bit.index))
+        for idx, bit in enumerate(self.clbits):
+            label = '{name}{index}: ' + initial_clbit_value
+            clbit_labels.append(label.format(name=idx,index=''))#bit.register.name, index=bit.index))
         return qubit_labels + clbit_labels
 
     def should_compress(self, top_line, bot_line):
