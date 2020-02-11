@@ -141,6 +141,10 @@ class DAGCircuit:
             self.clbits.append(creg[j])
             self._add_wire(creg[j])
 
+    @property
+    def bits(self):
+        return self.qubits + self.clbits
+
     def _add_wire(self, wire):
         """Add a qubit or bit to the circuit.
 
