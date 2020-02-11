@@ -70,36 +70,40 @@ def circuit_to_instruction(circuit, parameter_map=None):
                                circuit.parameters, parameter_dict))
 
     instruction = Instruction(name=circuit.name,
-                              num_qubits=sum([qreg.size for qreg in circuit.qregs]),
-                              num_clbits=sum([creg.size for creg in circuit.cregs]),
+                              num_qubits=len(circuit.qubits),
+                              num_clbits=len(circuit.clbits),
                               params=sorted(parameter_dict.values(), key=lambda p: p.name))
     instruction.condition = None
 
-    def find_bit_position(bit):
-        """find the index of a given bit (Register, int) within
-        a flat ordered list of bits of the circuit
-        """
-        if isinstance(bit, Qubit):
-            ordered_regs = circuit.qregs
-        else:
-            ordered_regs = circuit.cregs
-        reg_index = ordered_regs.index(bit.register)
-        return sum([reg.size for reg in ordered_regs[:reg_index]]) + bit.index
+    # def find_bit_position(bit):
+    #     """find the index of a given bit (Register, int) within
+    #     a flat ordered list of bits of the circuit
+    #     """
+    #     if isinstance(bit, Qubit):
+    #         ordered_regs = circuit.qregs
+    #     else:
+    #         ordered_regs = circuit.cregs
+    #     reg_index = ordered_regs.index(bit.register)
+    #     return sum([reg.size for reg in ordered_regs[:reg_index]]) + bit.index
 
     target = circuit.copy()
     target._substitute_parameters(parameter_dict)
 
     definition = target.data
 
-    if instruction.num_qubits > 0:
-        q = QuantumRegister(instruction.num_qubits, 'q')
-    if instruction.num_clbits > 0:
-        c = ClassicalRegister(instruction.num_clbits, 'c')
+    bit_map = { circ_bit: inst_bit
+                for circ_bit, inst_bit in zip(target.bits, instruction.bits)}
 
-    definition = list(map(lambda x:
-                          (x[0],
-                           list(map(lambda y: q[find_bit_position(y)], x[1])),
-                           list(map(lambda y: c[find_bit_position(y)], x[2]))), definition))
+    
+    # definition = list(map(lambda x:
+    #                       (x[0],
+    #                        list(map(lambda y: q[find_bit_position(y)], x[1])),
+    #                        list(map(lambda y: c[find_bit_position(y)], x[2]))), definition))
+
+    definition = [ (op,
+                    [bit_map[circ_bit] for circ_bit in qargs],
+                    [bit_map[circ_bit] for circ_bit in cargs])
+                   for op, qargs, cargs in definition]
     instruction.definition = definition
 
     return instruction

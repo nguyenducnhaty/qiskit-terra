@@ -40,8 +40,8 @@ import numpy
 
 from qiskit.qasm.node import node
 from qiskit.circuit.exceptions import CircuitError
-from qiskit.circuit.quantumregister import QuantumRegister
-from qiskit.circuit.classicalregister import ClassicalRegister
+from qiskit.circuit.quantumregister import QuantumRegister, ReglessQubit
+from qiskit.circuit.classicalregister import ClassicalRegister, ReglessClbit
 from qiskit.qobj.models.qasm import QasmQobjInstruction
 from qiskit.circuit.parameter import ParameterExpression
 
@@ -72,6 +72,8 @@ class Instruction:
         self.name = name
         self.num_qubits = num_qubits
         self.num_clbits = num_clbits
+        self.qubits = [ReglessQubit() for _ in range(self.num_qubits)]
+        self.clbits = [ReglessClbit() for _ in range(self.num_clbits)]
 
         self._params = []  # a list of gate params stored
 
@@ -124,6 +126,10 @@ class Instruction:
             return False
 
         return True
+
+    @property
+    def bits(self):
+        return self.qubits + self.clbits
 
     def _define(self):
         """Populates self.definition with a decomposition of this gate."""

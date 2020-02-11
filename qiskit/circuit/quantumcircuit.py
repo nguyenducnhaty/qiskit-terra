@@ -387,7 +387,7 @@ class QuantumCircuit:
                 # circuit.h(slice(0,2)) -> circuit.h([qr[0], qr[1]])
                 ret = in_array[bit_representation]
             elif isinstance(bit_representation, list) and \
-                    all(isinstance(bit, Bit) for bit in bit_representation):
+                    all(isinstance(bit, (Bit, ReglessBit)) for bit in bit_representation):
                 # circuit.h([qr[0], qr[1]]) -> circuit.h([qr[0], qr[1]])
                 ret = bit_representation
             elif isinstance(QuantumCircuit.cast(bit_representation, list), (range, list)):
