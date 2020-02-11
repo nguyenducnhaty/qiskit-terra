@@ -609,9 +609,9 @@ class TextDrawing():
         qubit_labels = []
         if self.layout is None:
             for idx, bit in enumerate(self.qubits):
-                label = '{name}{index}: ' + initial_qubit_value
-                qubit_labels.append(label.format(name=idx,#bit.register.name,
-                                                 index='',#bit.index,
+                label = '{name} {index}: ' + initial_qubit_value
+                qubit_labels.append(label.format(name='Qubit',#bit.register.name,
+                                                 index=idx,#bit.index,
                                                  physical=''))
             # for bit in self.qregs:
             #     label = '{name}_{index}: ' + initial_qubit_value
@@ -629,8 +629,8 @@ class TextDrawing():
         #     label = '{name}_{index}: ' + initial_clbit_value
         #     clbit_labels.append(label.format(name=bit.register.name, index=bit.index))
         for idx, bit in enumerate(self.clbits):
-            label = '{name}{index}: ' + initial_clbit_value
-            clbit_labels.append(label.format(name=idx,index=''))#bit.register.name, index=bit.index))
+            label = '{name} {index}: ' + initial_clbit_value
+            clbit_labels.append(label.format(name='Clbit',index=idx))#bit.register.name, index=bit.index))
         return qubit_labels + clbit_labels
 
     def should_compress(self, top_line, bot_line):
