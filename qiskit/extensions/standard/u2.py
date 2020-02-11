@@ -33,7 +33,8 @@ class U2Gate(Gate):
     def _define(self):
         from qiskit.extensions.standard.u3 import U3Gate
         definition = []
-        q = QuantumRegister(1, "q")
+        #q = QuantumRegister(1, "q")
+        q = self.qubits
         rule = [(U3Gate(pi / 2, self.params[0], self.params[1]), [q[0]], [])]
         for inst in rule:
             definition.append(inst)

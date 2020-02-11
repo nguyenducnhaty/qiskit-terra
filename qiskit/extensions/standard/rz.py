@@ -35,7 +35,8 @@ class RZGate(Gate):
         """
         from qiskit.extensions.standard.u1 import U1Gate
         definition = []
-        q = QuantumRegister(1, "q")
+        #q = QuantumRegister(1, "q")
+        q = self.qubits
         rule = [
             (U1Gate(self.params[0]), [q[0]], [])
         ]
