@@ -25,13 +25,13 @@ from qiskit.circuit.instruction import Instruction
 from qiskit.qasm.qasm import Qasm
 from qiskit.circuit.exceptions import CircuitError
 from .parameterexpression import ParameterExpression
-from .quantumregister import QuantumRegister, Qubit
-from .classicalregister import ClassicalRegister, Clbit
+from .quantumregister import QuantumRegister, Qubit, ReglessQubit
+from .classicalregister import ClassicalRegister, Clbit, ReglessClbit
 from .parametertable import ParameterTable
 from .parametervector import ParameterVector
 from .instructionset import InstructionSet
 from .register import Register
-from .bit import Bit
+from .bit import Bit, ReglessBit
 from .quantumcircuitdata import QuantumCircuitData
 
 
@@ -152,14 +152,21 @@ class QuantumCircuit:
         self._data = []
 
         # This is a map of registers bound to this circuit, by name.
-        self.qregs = []
-        self.cregs = []
+        self.qregs = set()
+        self.cregs = set()
+        self.qubits = []
+        self.clbits = []
         self.add_register(*regs)
 
         # Parameter table tracks instructions with variable parameters.
         self._parameter_table = ParameterTable()
 
         self._layout = None
+
+    @property
+    def bits(self):
+        # N.B. qubits always ordered before clbits
+        return self.qubits + self.clbits
 
     @property
     def data(self):
@@ -339,20 +346,6 @@ class QuantumCircuit:
             self._append(*instruction_context)
         return self
 
-    @property
-    def qubits(self):
-        """
-        Returns a list of quantum bits in the order that the registers were added.
-        """
-        return [qbit for qreg in self.qregs for qbit in qreg]
-
-    @property
-    def clbits(self):
-        """
-        Returns a list of classical bits in the order that the registers were added.
-        """
-        return [cbit for creg in self.cregs for cbit in creg]
-
     def __add__(self, rhs):
         """Overload + to implement self.combine."""
         return self.combine(rhs)
@@ -381,7 +374,7 @@ class QuantumCircuit:
     def _bit_argument_conversion(bit_representation, in_array):
         ret = None
         try:
-            if isinstance(bit_representation, Bit):
+            if isinstance(bit_representation, (Bit, ReglessBit)):
                 # circuit.h(qr[0]) -> circuit.h([qr[0]])
                 ret = [bit_representation]
             elif isinstance(bit_representation, Register):
@@ -524,29 +517,70 @@ class QuantumCircuit:
         if not regs:
             return
 
-        if any([isinstance(reg, int) for reg in regs]):
-            # QuantumCircuit defined without registers
-            if len(regs) == 1 and isinstance(regs[0], int):
-                # QuantumCircuit with anonymous quantum wires e.g. QuantumCircuit(2)
-                regs = (QuantumRegister(regs[0], 'q'),)
-            elif len(regs) == 2 and all([isinstance(reg, int) for reg in regs]):
-                # QuantumCircuit with anonymous wires e.g. QuantumCircuit(2, 3)
-                regs = (QuantumRegister(regs[0], 'q'), ClassicalRegister(regs[1], 'c'))
-            else:
-                raise CircuitError("QuantumCircuit parameters can be Registers or Integers."
-                                   " If Integers, up to 2 arguments. QuantumCircuit was called"
-                                   " with %s." % (regs,))
+        # if any([isinstance(reg, int) for reg in regs]):
+        #     # QuantumCircuit defined without registers
+        #     if len(regs) == 1 and isinstance(regs[0], int):
+        #         # QuantumCircuit with anonymous quantum wires e.g. QuantumCircuit(2)
+        #         regs = (QuantumRegister(regs[0], 'q'),)
+        #     elif len(regs) == 2 and all([isinstance(reg, int) for reg in regs]):
+        #         # QuantumCircuit with anonymous wires e.g. QuantumCircuit(2, 3)
+        #         regs = (QuantumRegister(regs[0], 'q'), ClassicalRegister(regs[1], 'c'))
+        #     else:
+        #         raise CircuitError("QuantumCircuit parameters can be Registers or Integers."
+        #                            " If Integers, up to 2 arguments. QuantumCircuit was called"
+        #                            " with %s." % (regs,))
 
-        for register in regs:
-            if register.name in [reg.name for reg in self.qregs + self.cregs]:
-                raise CircuitError("register name \"%s\" already exists"
-                                   % register.name)
-            if isinstance(register, QuantumRegister):
-                self.qregs.append(register)
-            elif isinstance(register, ClassicalRegister):
-                self.cregs.append(register)
+        # for register in regs:
+        #     if register.name in [reg.name for reg in self.qregs + self.cregs]:
+        #         raise CircuitError("register name \"%s\" already exists"
+        #                            % register.name)
+        #     if isinstance(register, QuantumRegister):
+        #         self.qregs.append(register)
+        #     elif isinstance(register, ClassicalRegister):
+        #         self.cregs.append(register)
+        #     else:
+        #         raise CircuitError("expected a register")
+
+        for idx, reg in enumerate(regs):
+            if isinstance(reg, int):
+                if idx == 0:
+                    self.qubits.extend(ReglessQubit() for _ in range(reg))
+                elif idx == 1:
+                    self.clbits.extend(ReglessClbit() for _  in range(reg))
+                else:
+                    raise RuntimeError('')
+
+            elif isinstance(reg, QuantumRegister):
+                self.qregs.add(reg)
+                self.qubits.extend(qubit for qubit in reg)
+            elif isinstance(reg, ClassicalRegister):
+                self.cregs.add(reg)
+                self.clbits.extend(clbit for clbit in reg)
             else:
-                raise CircuitError("expected a register")
+                raise RuntimeError('')
+
+    def mark_bits(self, idxes, name):
+        # idxes could also be qubit indexs
+        registered_bits = { bit for reg in self.qregs | self.cregs
+                            for bit in reg}
+        for idx in idxes:
+            if self.bits[idx] in registered_bits:
+                raise RuntimeError('')
+
+        if len(set(type(self.bits[idx]) for idx in idxes)) != 1:
+            print(set(type(self.bits[idx]) for idx in idxes))
+            raise RuntimeError('')
+
+        if isinstance(self.bits[idxes[0]], ReglessQubit):
+            qreg = QuantumRegister(name=name, bits=[self.bits[idx] for idx in idxes])
+            self.qregs.add(qreg)
+            return qreg
+        elif isinstance(self.bits[idxes[0]], ReglessClbit):
+            creg = ClassicalRegister(name=name, bits=[self.bits[idx] for idx in idxes])
+            self.cregs.add(creg)
+            return creg
+        else:
+            raise RuntimeError('')
 
     def _check_dups(self, qubits):
         """Raise exception if list of qubits contains duplicates."""
@@ -556,16 +590,16 @@ class QuantumCircuit:
 
     def _check_qargs(self, qargs):
         """Raise exception if a qarg is not in this circuit or bad format."""
-        if not all(isinstance(i, Qubit) for i in qargs):
+        if not all(isinstance(i, (Qubit, ReglessQubit)) for i in qargs):
             raise CircuitError("qarg is not a Qubit")
-        if not all(self.has_register(i.register) for i in qargs):
+        if not all(not hasattr(i, 'register') or self.has_register(i.register) for i in qargs):
             raise CircuitError("register not in this circuit")
 
     def _check_cargs(self, cargs):
         """Raise exception if clbit is not in this circuit or bad format."""
-        if not all(isinstance(i, Clbit) for i in cargs):
+        if not all(isinstance(i, (Clbit, ReglessClbit)) for i in cargs):
             raise CircuitError("carg is not a Clbit")
-        if not all(self.has_register(i.register) for i in cargs):
+        if not all(not hasattr(i, 'register') or self.has_register(i.register) for i in cargs):
             raise CircuitError("register not in this circuit")
 
     def to_instruction(self, parameter_map=None):

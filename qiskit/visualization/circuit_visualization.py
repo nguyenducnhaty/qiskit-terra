@@ -435,7 +435,7 @@ def _text_circuit_drawer(circuit, filename=None, line_length=None, reverse_bits=
     if line_length:
         warn('The parameter "line_length" is being replaced by "fold"', DeprecationWarning, 3)
         fold = line_length
-    text_drawing = _text.TextDrawing(qregs, cregs, ops, layout=layout)
+    text_drawing = _text.TextDrawing(qregs, cregs, circuit.qubits, circuit.clbits, ops, layout=layout)
     text_drawing.plotbarriers = plot_barriers
     text_drawing.line_length = fold
     text_drawing.vertical_compression = vertical_compression

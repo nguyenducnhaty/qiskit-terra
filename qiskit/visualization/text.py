@@ -477,10 +477,12 @@ class InputWire(DrawElement):
 class TextDrawing():
     """ The text drawing"""
 
-    def __init__(self, qregs, cregs, instructions, plotbarriers=True,
+    def __init__(self, qregs, cregs, qubits, clbits, instructions, plotbarriers=True,
                  line_length=None, vertical_compression='high', layout=None):
         self.qregs = qregs
         self.cregs = cregs
+        self.qubits = qubits
+        self.clbits = clbits
         self.instructions = instructions
         self.layout = layout
 
@@ -606,11 +608,16 @@ class TextDrawing():
 
         qubit_labels = []
         if self.layout is None:
-            for bit in self.qregs:
+            for bit in self.qubits:
                 label = '{name}_{index}: ' + initial_qubit_value
-                qubit_labels.append(label.format(name=bit.register.name,
-                                                 index=bit.index,
+                qubit_labels.append(label.format(name=repr(bit),#bit.register.name,
+                                                 index='',#bit.index,
                                                  physical=''))
+            # for bit in self.qregs:
+            #     label = '{name}_{index}: ' + initial_qubit_value
+            #     qubit_labels.append(label.format(name=bit.register.name,
+            #                                      index=bit.index,
+            #                                      physical=''))
         else:
             for bit in self.qregs:
                 label = '{name}_{index} -> {physical} ' + initial_qubit_value
@@ -618,9 +625,12 @@ class TextDrawing():
                                                  index=self.layout[bit.index].index,
                                                  physical=bit.index))
         clbit_labels = []
-        for bit in self.cregs:
+        # for bit in self.cregs:
+        #     label = '{name}_{index}: ' + initial_clbit_value
+        #     clbit_labels.append(label.format(name=bit.register.name, index=bit.index))
+        for bit in self.clbits:
             label = '{name}_{index}: ' + initial_clbit_value
-            clbit_labels.append(label.format(name=bit.register.name, index=bit.index))
+            clbit_labels.append(label.format(name=repr(bit),index=''))#bit.register.name, index=bit.index))
         return qubit_labels + clbit_labels
 
     def should_compress(self, top_line, bot_line):
