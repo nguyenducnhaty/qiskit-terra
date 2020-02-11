@@ -559,24 +559,31 @@ class QuantumCircuit:
             else:
                 raise RuntimeError('')
 
-    def mark_bits(self, idxes, name):
-        # idxes could also be qubit indexs
+    def mark_registers(self, idxes, name):
         registered_bits = { bit for reg in self.qregs | self.cregs
                             for bit in reg}
-        for idx in idxes:
-            if self.bits[idx] in registered_bits:
-                raise RuntimeError('')
 
-        if len(set(type(self.bits[idx]) for idx in idxes)) != 1:
-            print(set(type(self.bits[idx]) for idx in idxes))
+        if all(isinstance(idx, int) for idx in idxes):
+            new_reg_bits = [self.bits[idx] for idx in idxes]
+        elif all(isinstance(idx, ReglessBit) for idx in idxes):
+            if not set(idxes).issubset(self.bits):
+                raise RuntimeError('')
+            new_reg_bits = list(idxes)
+        else:
             raise RuntimeError('')
 
-        if isinstance(self.bits[idxes[0]], ReglessQubit):
-            qreg = QuantumRegister(name=name, bits=[self.bits[idx] for idx in idxes])
+        if set(new_reg_bits) & registered_bits:
+            raise RuntimeError('')
+
+        if len(set(type(bit) for bit in new_reg_bits)) != 1:
+            raise RuntimeError('')
+
+        if isinstance(new_reg_bits[0], ReglessQubit):
+            qreg = QuantumRegister(name=name, bits=new_reg_bits)
             self.qregs.add(qreg)
             return qreg
-        elif isinstance(self.bits[idxes[0]], ReglessClbit):
-            creg = ClassicalRegister(name=name, bits=[self.bits[idx] for idx in idxes])
+        elif isinstance(new_reg_bits[0], ReglessClbit):
+            creg = ClassicalRegister(name=name, bits=new_reg_bits)
             self.cregs.add(creg)
             return creg
         else:
