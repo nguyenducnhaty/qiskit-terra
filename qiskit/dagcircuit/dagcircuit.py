@@ -370,11 +370,12 @@ class DAGCircuit:
         # self.qregs/self.cregs still keying on string.
         add_regs = set()
         reg_frag_chk = {}
-        for v in keyregs.values():
+        # for v in keyregs.values():
+        for v in keyregs:
             reg_frag_chk[v] = {j: False for j in range(len(v))}
         for k in edge_map.keys():
-            if k.register.name in keyregs:
-                reg_frag_chk[k.register][k.index] = True
+            if k.register in keyregs:
+                reg_frag_chk[k] = True
         for k, v in reg_frag_chk.items():
             s = set(v.values())
             if len(s) == 2:
@@ -785,8 +786,8 @@ class DAGCircuit:
                                                replay_node.cargs, condition=condition)
 
         if wires is None:
-            qwires = [w for w in input_dag.wires if isinstance(w, Qubit)]
-            cwires = [w for w in input_dag.wires if isinstance(w, Clbit)]
+            qwires = [w for w in input_dag.wires if isinstance(w, (Qubit, ReglessQubit))]
+            cwires = [w for w in input_dag.wires if isinstance(w, (Clbit, ReglessClbit))]
             wires = qwires + cwires
 
         self._check_wires_list(wires, node)
@@ -794,17 +795,17 @@ class DAGCircuit:
         # Create a proxy wire_map to identify fragments and duplicates
         # and determine what registers need to be added to self
         proxy_map = {w: QuantumRegister(1, 'proxy') for w in wires}
-        add_qregs = self._check_edgemap_registers(proxy_map,
-                                                  input_dag.qregs,
-                                                  {}, False)
-        for qreg in add_qregs:
-            self.add_qreg(qreg)
+        # add_qregs = self._check_edgemap_registers(proxy_map,
+        #                                           input_dag.qregs,
+        #                                           {}, False)
+        # for qreg in add_qregs:
+        #     self.add_qreg(qreg)
 
-        add_cregs = self._check_edgemap_registers(proxy_map,
-                                                  input_dag.cregs,
-                                                  {}, False)
-        for creg in add_cregs:
-            self.add_creg(creg)
+        # add_cregs = self._check_edgemap_registers(proxy_map,
+        #                                           input_dag.cregs,
+        #                                           {}, False)
+        # for creg in add_cregs:
+        #     self.add_creg(creg)
 
         # Replace the node by iterating through the input_circuit.
         # Constructing and checking the validity of the wire_map.
@@ -817,7 +818,7 @@ class DAGCircuit:
         condition_bit_list = self._bits_in_condition(node.condition)
 
         wire_map = dict(zip(wires, list(node.qargs) + list(node.cargs) + list(condition_bit_list)))
-        self._check_wiremap_validity(wire_map, wires, self.input_map)
+        #self._check_wiremap_validity(wire_map, wires, self.input_map)
         pred_map, succ_map = self._make_pred_succ_maps(node)
         full_pred_map, full_succ_map = self._full_pred_succ_maps(pred_map, succ_map,
                                                                  input_dag, wire_map)
@@ -855,7 +856,7 @@ class DAGCircuit:
             for q in itertools.chain(*al):
                 self._multi_graph.add_edge(full_pred_map[q],
                                            self._id_to_node[self._max_node_id],
-                                           name="%s[%s]" % (q.register.name, q.index),
+                                           name=repr(q),#"%s[%s]" % (q.register.name, q.index),
                                            wire=q)
                 full_pred_map[q] = self._id_to_node[self._max_node_id]
 
@@ -864,7 +865,7 @@ class DAGCircuit:
         for w in full_pred_map:
             self._multi_graph.add_edge(full_pred_map[w],
                                        full_succ_map[w],
-                                       name="%s[%s]" % (w.register.name, w.index),
+                                       name=repr(w),#"%s[%s]" % (w.register.name, w.index),
                                        wire=w)
             o_pred = list(self._multi_graph.predecessors(self.output_map[w]))
             if len(o_pred) > 1:
