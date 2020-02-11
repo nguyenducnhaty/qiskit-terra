@@ -64,3 +64,9 @@ class ReglessBit:
     def __repr__(self):
         """Return the official string representing the bit."""
         return "%s(%s)" % (self.__class__.__name__, hex(id(self)))
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo=None):
+        return self
