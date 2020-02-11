@@ -541,6 +541,7 @@ class QuantumCircuit:
         #     else:
         #         raise CircuitError("expected a register")
 
+        # Could also accept pre-defined Bits here
         for idx, reg in enumerate(regs):
             if isinstance(reg, int):
                 if idx == 0:
@@ -556,6 +557,15 @@ class QuantumCircuit:
             elif isinstance(reg, ClassicalRegister):
                 self.cregs.add(reg)
                 self.clbits.extend(clbit for clbit in reg)
+            else:
+                raise RuntimeError('')
+
+    def add_bits(self, *bits):
+        for bit in bits:
+            if isinstance(bit, (Qubit, ReglessQubit)):
+                self.qubits.append(bit)
+            elif isinstance(bit, (Clbit, ReglessClbit)):
+                self.clbits.append(bit)
             else:
                 raise RuntimeError('')
 
