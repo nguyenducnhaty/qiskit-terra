@@ -415,16 +415,21 @@ class Operator(BaseOperator):
         ret._data = other * self._data
         return ret
 
-    def equiv(self, other, rtol=None, atol=None):
-        """Return True if operators are equivalent up to global phase.
+    def equiv(self, other, up_to_phase=True, up_to_diagonal=False,
+              rtol=None, atol=None):
+        """Return True if operators are equivalent, up to some metrics.
+
+        This is a more flexible check of operator equivalence than ``__eq__``.
 
         Args:
             other (Operator): an operator object.
+            up_to_phase (bool): allow a difference in global phase [Default: True]
+            up_to_diagonal (bool): allow a difference in relative phase [Default: True]
             rtol (float): relative tolerance value for comparison.
             atol (float): absolute tolerance value for comparison.
 
         Returns:
-            bool: True if operators are equivalent up to global phase.
+            bool: True if operators are considered equivalent.
         """
         if not isinstance(other, Operator):
             try:
@@ -437,8 +442,8 @@ class Operator(BaseOperator):
             atol = self.atol
         if rtol is None:
             rtol = self.rtol
-        return matrix_equal(self.data, other.data, ignore_phase=True,
-                            rtol=rtol, atol=atol)
+        return matrix_equal(self.data, other.data, ignore_phase=up_to_phase,
+                            up_to_diagonal=up_to_diagonal, rtol=rtol, atol=atol)
 
     @property
     def _shape(self):
