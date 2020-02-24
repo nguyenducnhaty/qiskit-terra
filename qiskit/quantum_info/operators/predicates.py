@@ -27,7 +27,6 @@ RTOL_DEFAULT = 1e-5
 def matrix_equal(mat1,
                  mat2,
                  ignore_phase=False,
-                 up_to_diagonal=False,
                  rtol=RTOL_DEFAULT,
                  atol=ATOL_DEFAULT):
     """Test if two arrays are equal.
@@ -38,15 +37,10 @@ def matrix_equal(mat1,
     If ``ignore_phase`` is True, the two matrices are considered equal
     if ``exp(1j * theta) * mat1 = mat2`` (global phase difference).
 
-    If ``up_to_diagonal`` is True, the two matrices are considered equal
-    if ``mat1.D = mat2``, where D is a diagonal unitary. Note: order matters
-    in this check and ``D.mat1 = mat2`` is not checked.
-
     Args:
         mat1 (matrix_like): a matrix
         mat2 (matrix_like): a matrix
         ignore_phase (bool): ignore complex global phase difference [Default: False]
-        up_to_diagonal (bool): check equivalence up to diagonal [Default: False]
         rtol (double): the relative tolerance parameter [Default {}].
         atol (double): the absolute tolerance parameter [Default {}].
 
@@ -58,10 +52,6 @@ def matrix_equal(mat1,
     mat2 = np.array(mat2)
     if mat1.shape != mat2.shape:
         return False
-    if up_to_diagonal:
-        # Right multiplication by a diagonal scales the columns
-        diag = np.diag(mat2.diagonal() / mat1.diagonal())
-        mat1 = np.dot(mat1, diag)
     if ignore_phase:
         # Get phase of first non-zero entry of mat1 and mat2
         # and multiply all entries by the conjugate

@@ -421,10 +421,17 @@ class Operator(BaseOperator):
 
         This is a more flexible check of operator equivalence than ``__eq__``.
 
+        If ``up_to_phase`` is True, the two matrices are considered equal
+        if ``exp(1j * theta) * mat1 = mat2`` (global phase difference).
+
+        If ``up_to_diagonal`` is True, the two matrices are considered equal
+        if ``other.data = D.self.data``, where D is a diagonal unitary. Note: order matters
+        in this check and ``other.data = self.data.D`` is not checked.
+
         Args:
             other (Operator): an operator object.
             up_to_phase (bool): allow a difference in global phase [Default: True]
-            up_to_diagonal (bool): allow a difference in relative phase [Default: True]
+            up_to_diagonal (bool): allow a difference in relative phase [Default: False]
             rtol (float): relative tolerance value for comparison.
             atol (float): absolute tolerance value for comparison.
 
@@ -442,8 +449,13 @@ class Operator(BaseOperator):
             atol = self.atol
         if rtol is None:
             rtol = self.rtol
-        return matrix_equal(self.data, other.data, ignore_phase=up_to_phase,
-                            up_to_diagonal=up_to_diagonal, rtol=rtol, atol=atol)
+        mat1 = self.data
+        mat2 = other.data
+        if up_to_diagonal:
+            # Left multiplication of a diagonal scales the rows
+            diag = np.diag(mat2.diagonal() / mat1.diagonal())
+            mat1 = np.dot(diag, mat1)
+        return matrix_equal(mat1, mat2, ignore_phase=up_to_phase, rtol=rtol, atol=atol)
 
     @property
     def _shape(self):
