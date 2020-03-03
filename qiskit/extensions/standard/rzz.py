@@ -31,13 +31,13 @@ class RZZGate(Gate):
         """
         gate rzz(theta) a, b { cx a, b; u1(theta) b; cx a, b; }
         """
-        from qiskit.extensions.standard.u1 import U1Gate
+        from qiskit.extensions.standard.rz import RZGate
         from qiskit.extensions.standard.x import CXGate
         definition = []
         q = QuantumRegister(2, 'q')
         rule = [
             (CXGate(), [q[0], q[1]], []),
-            (U1Gate(self.params[0]), [q[1]], []),
+            (RZGate(self.params[0]), [q[1]], []),
             (CXGate(), [q[0], q[1]], [])
         ]
         for inst in rule:

@@ -53,3 +53,7 @@ from .u3 import Cu3Gate
 from .rx import CrxGate
 from .ry import CryGate
 from .rz import CrzGate
+
+from .direct_rx import DirectRXGate
+from .cr import CRGate
+from .direct_rzz import DirectRZZGate
