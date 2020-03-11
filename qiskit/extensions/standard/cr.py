@@ -31,7 +31,7 @@ class CRGate(Gate):
     """
 
     def __init__(self, theta):
-        super().__init__("cr_%s" % theta, 2, [theta])
+        super().__init__("CR(%s)" % theta, 2, [theta])
 
     def inverse(self):
         """Invert this gate."""
