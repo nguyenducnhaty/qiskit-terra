@@ -190,6 +190,16 @@ class CouplingMap:
             raise CouplingError(
                 "Nodes %s and %s are not connected" % (str(physical_qubit1), str(physical_qubit2)))
 
+    def average_shortest_undirected_path_length(self):
+        """Returns the average undirected distance between graph node pairs.
+
+        This is a reasonable metric for hardness of routing on this toplogy.
+
+        Returns:
+            int: The average distance between pairs of node.
+        """
+        return nx.average_shortest_path_length(self.graph.to_undirected(as_view=True))
+
     @property
     def is_symmetric(self):
         """
