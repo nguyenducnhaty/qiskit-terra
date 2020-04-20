@@ -374,7 +374,6 @@ class QuantumCircuit:
             clbits = []
         qubit_map = {self.qubits[i]: (other.qubits[q] if isinstance(q, int) else q) for i, q in enumerate(qubits)}
         clbit_map = {self.clbits[i]: (other.clbits[c] if isinstance(c, int) else c) for i, c in enumerate(clbits)}
-        print({**qubit_map, **clbit_map})
         dag_self.compose(dag_other, edge_map={**qubit_map, **clbit_map})
         return dag_to_circuit(dag_self)
 
@@ -478,7 +477,7 @@ class QuantumCircuit:
         """
         return QuantumCircuit._bit_argument_conversion(clbit_representation, self.clbits)
 
-    def append(self, instruction, qargs=None, cargs=None, label=None):
+    def append(self, instruction, qargs=None, cargs=None):
         """Append one or more instructions to the end of the circuit, modifying
         the circuit in place. Expands qargs and cargs.
 
@@ -486,7 +485,6 @@ class QuantumCircuit:
             instruction (qiskit.circuit.Instruction): Instruction instance to append
             qargs (list(argument)): qubits to attach instruction to
             cargs (list(argument)): clbits to attach instruction to
-            label (str or None): An optional label for the instruction [Default: None]
 
         Returns:
             qiskit.circuit.Instruction: a handle to the instruction that was just added
@@ -494,8 +492,6 @@ class QuantumCircuit:
         # Convert input to instruction
         if not isinstance(instruction, Instruction) and hasattr(instruction, 'to_instruction'):
             instruction = instruction.to_instruction()
-
-        instruction.label = label
 
         expanded_qargs = [self.qbit_argument_conversion(qarg) for qarg in qargs or []]
         expanded_cargs = [self.cbit_argument_conversion(carg) for carg in cargs or []]
