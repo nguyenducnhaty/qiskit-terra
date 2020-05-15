@@ -350,8 +350,8 @@ class TestCircuitOperations(QiskitTestCase):
 
         self.assertEqual(expected, circuit)
 
-    def test_mirror(self):
-        """Test mirror method reverses but does not invert."""
+    def test_reverse(self):
+        """Test reverse method reverses but does not invert."""
         qc = QuantumCircuit(2, 2)
         qc.h(0)
         qc.s(1)
@@ -368,7 +368,7 @@ class TestCircuitOperations(QiskitTestCase):
         expected.s(1)
         expected.h(0)
 
-        self.assertEqual(qc.mirror(), expected)
+        self.assertEqual(qc.reverse(), expected)
 
 
 class TestCircuitBuilding(QiskitTestCase):
