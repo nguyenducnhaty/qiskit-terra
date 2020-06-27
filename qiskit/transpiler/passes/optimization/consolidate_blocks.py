@@ -104,7 +104,7 @@ class ConsolidateBlocks(TransformationPass):
         # create the dag from the updated list of blocks
         basis_gate_name = self.decomposer.gate.name
         for block in blocks:
-            if len(block) == 1 and (block[0].name not in ['cx', 'cz', 'rxx', 'iswap']
+            if len(block) == 1 and (block[0].name not in ['cx', 'cz', 'rxx', 'iswap', 'ecr']
                                     or block[0].op.is_parameterized()):
                 # an intermediate node that was added into the overall list
                 new_dag.apply_operation_back(block[0].op, block[0].qargs,
