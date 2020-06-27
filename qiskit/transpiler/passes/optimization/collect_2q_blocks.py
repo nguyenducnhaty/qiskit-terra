@@ -51,7 +51,7 @@ class Collect2qBlocks(AnalysisPass):
         self.property_set['commutation_set'] = defaultdict(list)
 
         good_1q_names = ["u1", "u2", "u3", "id", "rx", "ry", "rz"]
-        good_2q_names = ["cx", "rxx", "cz", "iswap"]
+        good_2q_names = ["cx", "rxx", "cz", "iswap", "ecr"]
         good_names = good_1q_names + good_2q_names
         block_list = []
         nodes = list(dag.topological_nodes())

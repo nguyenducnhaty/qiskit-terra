@@ -167,9 +167,10 @@ def level_3_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
     _meas = [OptimizeSwapBeforeMeasure(), RemoveDiagonalGatesBeforeMeasure()]
 
     # Choose the first available 2q gate to use in the KAK decomposition.
-    from qiskit.circuit.library.standard_gates import iSwapGate, CXGate, CZGate, RXXGate
+    from qiskit.circuit.library.standard_gates import iSwapGate, CXGate, CZGate, RXXGate, ECRGate
     kak_gate_names = {
-        'iswap': iSwapGate(), 'cx': CXGate(), 'cz': CZGate(), 'rxx': RXXGate(math.pi / 2)
+        'iswap': iSwapGate(), 'cx': CXGate(), 'cz': CZGate(),
+        'rxx': RXXGate(math.pi / 2), 'ecr': ECRGate()
     }
 
     kak_gate = None
