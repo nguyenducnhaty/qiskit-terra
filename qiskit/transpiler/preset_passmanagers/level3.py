@@ -53,6 +53,7 @@ from qiskit.transpiler.passes import Collect2qBlocks
 from qiskit.transpiler.passes import ConsolidateBlocks
 from qiskit.transpiler.passes import ApplyLayout
 from qiskit.transpiler.passes import CheckCXDirection
+from qiskit.transpiler.passes import SimplifyU3
 from qiskit.transpiler.passes import Approx2qDecompose
 
 from qiskit.transpiler import TranspilerError
@@ -180,7 +181,8 @@ def level_3_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
 
     _opt = [Collect2qBlocks(), ConsolidateBlocks(kak_basis_gate=kak_gate),
             Optimize1qGates(basis_gates), CommutativeCancellation(),
-            Approx2qDecompose(basis=kak_gate, fidelity=synthesis_fidelity)]
+            Approx2qDecompose(basis=kak_gate, fidelity=synthesis_fidelity),
+            SimplifyU3()]
 
     # Build pass manager
     pm3 = PassManager()
