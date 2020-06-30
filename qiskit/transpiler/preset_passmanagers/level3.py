@@ -179,8 +179,8 @@ def level_3_pass_manager(pass_manager_config: PassManagerConfig) -> PassManager:
         kak_gate = kak_gate_names[kak_gates.pop()]
 
     _opt = [Collect2qBlocks(), ConsolidateBlocks(kak_basis_gate=kak_gate),
-            Approx2qDecompose(basis=kak_gate, fidelity=synthesis_fidelity),
-            Optimize1qGates(basis_gates), CommutativeCancellation()]
+            Optimize1qGates(basis_gates), CommutativeCancellation(),
+            Approx2qDecompose(basis=kak_gate, fidelity=synthesis_fidelity)]
 
     # Build pass manager
     pm3 = PassManager()
